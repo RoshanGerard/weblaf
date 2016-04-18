@@ -23,12 +23,12 @@ import com.alee.extended.transition.TransitionAdapter;
 import com.alee.extended.transition.effects.Direction;
 import com.alee.extended.transition.effects.slide.SlideTransitionEffect;
 import com.alee.extended.transition.effects.slide.SlideType;
-import com.alee.global.StyleConstants;
 import com.alee.laf.button.WebButton;
 import com.alee.laf.button.WebToggleButton;
 import com.alee.laf.label.WebLabel;
 import com.alee.laf.panel.WebPanel;
 import com.alee.laf.separator.WebSeparator;
+import com.alee.managers.style.StyleId;
 import com.alee.utils.CollectionUtils;
 import com.alee.utils.CompareUtils;
 import com.alee.utils.SwingUtils;
@@ -47,7 +47,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * This is a custom calendar component.
+ * Custom calendar component.
  *
  * @author Mikle Garin
  * @see WebDateField
@@ -66,7 +66,7 @@ public class WebCalendar extends WebPanel
     /**
      * Date selection listeners.
      */
-    protected List<DateSelectionListener> dateSelectionListeners = new ArrayList<DateSelectionListener> ( 1 );
+    protected List<DateListener> dateListeners = new ArrayList<DateListener> ( 1 );
 
     /**
      * Calendar title format.
@@ -144,7 +144,7 @@ public class WebCalendar extends WebPanel
      */
     public WebCalendar ()
     {
-        this ( null );
+        this ( StyleId.calendar, null );
     }
 
     /**
@@ -154,15 +154,32 @@ public class WebCalendar extends WebPanel
      */
     public WebCalendar ( final Date date )
     {
-        super ( true );
+        this ( StyleId.calendar, date );
+    }
+
+    /**
+     * Constructs new calendar without selected date.
+     *
+     * @param id style ID
+     */
+    public WebCalendar ( final StyleId id )
+    {
+        this ( id, null );
+    }
+
+    /**
+     * Constructs new calendar with the specified selected date.
+     *
+     * @param id   style ID
+     * @param date selected date
+     */
+    public WebCalendar ( final StyleId id, final Date date )
+    {
+        super ( id, new BorderLayout ( 0, 0 ) );
+        putClientProperty ( SwingUtils.HANDLES_ENABLE_STATE, true );
 
         this.date = date != null ? new Date ( date.getTime () ) : null;
         this.shownDate = date != null ? new Date ( date.getTime () ) : new Date ();
-
-        setPaintFocus ( true );
-        setRound ( StyleConstants.smallRound );
-        setLayout ( new BorderLayout ( 0, 0 ) );
-        putClientProperty ( SwingUtils.HANDLES_ENABLE_STATE, true );
 
         // Main layout
         final WebPanel centerPanel = new WebPanel ();
@@ -170,12 +187,10 @@ public class WebCalendar extends WebPanel
         add ( centerPanel, BorderLayout.CENTER );
 
         // Header panel
-        final WebPanel header = new WebPanel ();
-        header.setOpaque ( false );
+        final WebPanel header = new WebPanel ( StyleId.calendarHeaderPanel.at ( this ) );
         add ( header, BorderLayout.NORTH );
 
-        previousSkip = WebButton.createIconWebButton ( previousSkipIcon, StyleConstants.smallRound, true );
-        previousSkip.setDrawFocus ( false );
+        previousSkip = new WebButton ( StyleId.calendarPrevYearButton.at ( header ), previousSkipIcon );
         previousSkip.addActionListener ( new ActionListener ()
         {
             @Override
@@ -185,8 +200,7 @@ public class WebCalendar extends WebPanel
             }
         } );
 
-        previous = WebButton.createIconWebButton ( previousIcon, StyleConstants.smallRound, true );
-        previous.setDrawFocus ( false );
+        previous = new WebButton ( StyleId.calendarPrevMonthButton.at ( header ), previousIcon );
         previous.addActionListener ( new ActionListener ()
         {
             @Override
@@ -202,16 +216,12 @@ public class WebCalendar extends WebPanel
         leftHeader.add ( previous, BorderLayout.EAST );
         header.add ( leftHeader, BorderLayout.WEST );
 
-        titleLabel = new WebLabel ();
-        updateTitleLabel ();
+        titleLabel = new WebLabel ( StyleId.calendarTitleLabel.at ( header ) );
         titleLabel.setBoldFont ();
-        titleLabel.setDrawShade ( true );
-        titleLabel.setHorizontalAlignment ( WebLabel.CENTER );
-        titleLabel.setVerticalAlignment ( WebLabel.CENTER );
+        updateTitleLabel ();
         header.add ( titleLabel, BorderLayout.CENTER );
 
-        next = WebButton.createIconWebButton ( nextIcon, StyleConstants.smallRound, true );
-        next.setDrawFocus ( false );
+        next = new WebButton ( StyleId.calendarNextMonthButton.at ( header ), nextIcon );
         next.addActionListener ( new ActionListener ()
         {
             @Override
@@ -221,8 +231,7 @@ public class WebCalendar extends WebPanel
             }
         } );
 
-        nextSkip = WebButton.createIconWebButton ( nextSkipIcon, StyleConstants.smallRound, true );
-        nextSkip.setDrawFocus ( false );
+        nextSkip = new WebButton ( StyleId.calendarNextYearButton.at ( header ), nextSkipIcon );
         nextSkip.addActionListener ( new ActionListener ()
         {
             @Override
@@ -239,17 +248,11 @@ public class WebCalendar extends WebPanel
         header.add ( rightHeader, BorderLayout.EAST );
 
         // Week days
-        weekHeaders = new WebPanel ();
-        weekHeaders.setUndecorated ( false );
-        weekHeaders.setPaintSides ( true, false, true, false );
-        weekHeaders.setShadeWidth ( 0 );
-        weekHeaders.setOpaque ( false );
-        weekHeaders.setMargin ( StyleConstants.shadeWidth, StyleConstants.shadeWidth - 1, StyleConstants.shadeWidth + 1,
-                StyleConstants.shadeWidth - 1 );
-        weekHeaders.setLayout ( new TableLayout ( new double[][]{
-                { TableLayout.FILL, TableLayout.PREFERRED, TableLayout.FILL, TableLayout.PREFERRED, TableLayout.FILL, TableLayout.PREFERRED,
-                        TableLayout.FILL, TableLayout.PREFERRED, TableLayout.FILL, TableLayout.PREFERRED, TableLayout.FILL,
-                        TableLayout.PREFERRED, TableLayout.FILL }, { TableLayout.PREFERRED } } ) );
+        final double f = TableLayout.FILL;
+        final double p = TableLayout.PREFERRED;
+        final double[] cols = { f, p, f, p, f, p, f, p, f, p, f, p, f };
+        final double[] rows = { p };
+        weekHeaders = new WebPanel ( StyleId.calendarWeekTitlesPanel.at ( this ), new TableLayout ( new double[][]{ cols, rows } ) );
         centerPanel.add ( weekHeaders, BorderLayout.NORTH );
         updateWeekHeaders ();
 
@@ -323,7 +326,7 @@ public class WebCalendar extends WebPanel
      */
     protected void changeMonth ( int change )
     {
-        // Reverese date change due to reversed orientation
+        // Reverse date change due to reversed orientation
         if ( !getComponentOrientation ().isLeftToRight () )
         {
             change = -change;
@@ -343,7 +346,7 @@ public class WebCalendar extends WebPanel
      */
     protected void changeYear ( int change )
     {
-        // Reverese date change due to reversed orientation
+        // Reverse date change due to reversed orientation
         if ( !getComponentOrientation ().isLeftToRight () )
         {
             change = -change;
@@ -363,19 +366,11 @@ public class WebCalendar extends WebPanel
      */
     protected WebPanel createMonthPanel ()
     {
-        final WebPanel monthDays = new WebPanel ();
-        monthDays.setOpaque ( false );
-        monthDays.setMargin ( StyleConstants.shadeWidth - 1, StyleConstants.shadeWidth - 1, StyleConstants.shadeWidth - 1,
-                StyleConstants.shadeWidth - 1 );
-        final TableLayout layout = new TableLayout ( new double[][]{
-                { TableLayout.FILL, TableLayout.PREFERRED, TableLayout.FILL, TableLayout.PREFERRED, TableLayout.FILL, TableLayout.PREFERRED,
-                        TableLayout.FILL, TableLayout.PREFERRED, TableLayout.FILL, TableLayout.PREFERRED, TableLayout.FILL,
-                        TableLayout.PREFERRED, TableLayout.FILL },
-                { TableLayout.FILL, TableLayout.FILL, TableLayout.FILL, TableLayout.FILL, TableLayout.FILL, TableLayout.FILL } } );
-        layout.setHGap ( 0 );
-        layout.setVGap ( 0 );
-        monthDays.setLayout ( layout );
-        return monthDays;
+        final double f = TableLayout.FILL;
+        final double p = TableLayout.PREFERRED;
+        final double[] cols = { f, p, f, p, f, p, f, p, f, p, f, p, f };
+        final double[] rows = { f, f, f, f, f, f };
+        return new WebPanel ( StyleId.calendarMonthPanel.at ( this ), new TableLayout ( new double[][]{ cols, rows }, 0, 0 ) );
     }
 
     /**
@@ -421,10 +416,8 @@ public class WebCalendar extends WebPanel
         {
             final int day = !startWeekFromSunday ? i : i == 1 ? 7 : i - 1;
 
-            final WebLabel dayOfWeekLabel = new WebLabel ();
-            dayOfWeekLabel.setLanguage ( "weblaf.ex.calendar.dayOfWeek." + day );
-            dayOfWeekLabel.setDrawShade ( true );
-            dayOfWeekLabel.setHorizontalAlignment ( WebLabel.CENTER );
+            final StyleId dayOfWeekId = StyleId.calendarWeekTitleLabel.at ( weekHeaders );
+            final WebLabel dayOfWeekLabel = new WebLabel ( dayOfWeekId, "weblaf.ex.calendar.dayOfWeek." + day );
             dayOfWeekLabel.setFontSizeAndStyle ( 10, Font.BOLD );
             weekHeaders.add ( dayOfWeekLabel, ( i - 1 ) * 2 + ",0" );
 
@@ -496,13 +489,9 @@ public class WebCalendar extends WebPanel
         while ( calendar.get ( Calendar.DAY_OF_MONTH ) > 1 )
         {
             final Date thisDate = calendar.getTime ();
-            final WebToggleButton day = new WebToggleButton ();
+            final StyleId dayId = StyleId.calendarPreviousMonthDateToggleButton.at ( monthDays );
+            final WebToggleButton day = new WebToggleButton ( dayId, "" + calendar.get ( Calendar.DAY_OF_MONTH ) );
             day.setForeground ( otherMonthForeground );
-            day.setText ( "" + calendar.get ( Calendar.DAY_OF_MONTH ) );
-            day.setRolloverDecoratedOnly ( true );
-            day.setHorizontalAlignment ( WebButton.RIGHT );
-            day.setRound ( StyleConstants.smallRound );
-            day.setFocusable ( false );
             day.addItemListener ( new ItemListener ()
             {
                 @Override
@@ -539,14 +528,10 @@ public class WebCalendar extends WebPanel
             final boolean selected = date != null && TimeUtils.isSameDay ( calendar, date.getTime () );
 
             final Date thisDate = calendar.getTime ();
-            final WebToggleButton day = new WebToggleButton ();
+            final StyleId dayId = StyleId.calendarCurrentMonthDateToggleButton.at ( monthDays );
+            final WebToggleButton day = new WebToggleButton ( dayId, "" + calendar.get ( Calendar.DAY_OF_MONTH ) );
             day.setForeground ( weekend ? weekendsForeground : currentMonthForeground );
-            day.setText ( "" + calendar.get ( Calendar.DAY_OF_MONTH ) );
             day.setSelected ( selected );
-            day.setRolloverDecoratedOnly ( true );
-            day.setHorizontalAlignment ( WebButton.RIGHT );
-            day.setRound ( StyleConstants.smallRound );
-            day.setFocusable ( false );
             day.addActionListener ( new ActionListener ()
             {
                 @Override
@@ -584,13 +569,9 @@ public class WebCalendar extends WebPanel
         for ( int i = 1; i <= left; i++ )
         {
             final Date thisDate = calendar.getTime ();
-            final WebToggleButton day = new WebToggleButton ();
+            final StyleId dayId = StyleId.calendarNextMonthDateToggleButton.at ( monthDays );
+            final WebToggleButton day = new WebToggleButton ( dayId, "" + calendar.get ( Calendar.DAY_OF_MONTH ) );
             day.setForeground ( otherMonthForeground );
-            day.setText ( "" + calendar.get ( Calendar.DAY_OF_MONTH ) );
-            day.setRolloverDecoratedOnly ( true );
-            day.setHorizontalAlignment ( WebButton.RIGHT );
-            day.setRound ( StyleConstants.smallRound );
-            day.setFocusable ( false );
             day.addItemListener ( new ItemListener ()
             {
                 @Override
@@ -901,9 +882,6 @@ public class WebCalendar extends WebPanel
         updateMonth ( monthDays );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setEnabled ( final boolean enabled )
     {
@@ -916,9 +894,9 @@ public class WebCalendar extends WebPanel
      *
      * @param listener date selection listener
      */
-    public void addDateSelectionListener ( final DateSelectionListener listener )
+    public void addDateSelectionListener ( final DateListener listener )
     {
-        dateSelectionListeners.add ( listener );
+        dateListeners.add ( listener );
     }
 
     /**
@@ -926,9 +904,9 @@ public class WebCalendar extends WebPanel
      *
      * @param listener date selection listener
      */
-    public void removeDateSelectionListener ( final DateSelectionListener listener )
+    public void removeDateSelectionListener ( final DateListener listener )
     {
-        dateSelectionListeners.remove ( listener );
+        dateListeners.remove ( listener );
     }
 
     /**
@@ -938,9 +916,9 @@ public class WebCalendar extends WebPanel
      */
     public void fireDateSelected ( final Date date )
     {
-        for ( final DateSelectionListener listener : CollectionUtils.copy ( dateSelectionListeners ) )
+        for ( final DateListener listener : CollectionUtils.copy ( dateListeners ) )
         {
-            listener.dateSelected ( date );
+            listener.dateChanged ( date );
         }
     }
 }

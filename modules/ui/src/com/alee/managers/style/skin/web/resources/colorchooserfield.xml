@@ -1,0 +1,22 @@
+<skin>
+
+    <!-- com.alee.extended.colorchooser.WebColorChooserField -->
+
+    <!-- Color chooser field -->
+    <style type="textfield" id="colorchooserfield">
+        <component>
+            <horizontalAlignment>0</horizontalAlignment>
+        </component>
+
+        <!-- Color choose button -->
+        <style type="button" id="choose" extends="icon">
+            <painter class="WebButtonPainter">
+                <shadeWidth>0</shadeWidth>
+                <moveIconOnPress>false</moveIconOnPress>
+                <rolloverDecoratedOnly>true</rolloverDecoratedOnly>
+            </painter>
+        </style>
+
+    </style>
+
+</skin>

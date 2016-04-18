@@ -25,6 +25,7 @@ import com.alee.managers.settings.DefaultValue;
 import com.alee.managers.settings.SettingsManager;
 import com.alee.managers.settings.SettingsMethods;
 import com.alee.managers.settings.SettingsProcessor;
+import com.alee.managers.style.StyleId;
 import com.alee.utils.CollectionUtils;
 import com.alee.utils.EventUtils;
 import com.alee.utils.TextUtils;
@@ -47,7 +48,7 @@ import java.util.Map;
  * This component is basically a special container for customizable documents described by DocumentData class.
  * You can also override DocumentData class and for example include your own data into the document itself.
  * <p/>
- * This component uses either single or multiply tabbed panes and allow tabs reorder, drag, split and closability.
+ * This component uses either single or multiply tabbed panes and allow tabs reorder, drag, split and closeability.
  * All those features are of course configurable within the WebDocumentPane instance.
  *
  * @param <T> document type
@@ -158,7 +159,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
      */
     public WebDocumentPane ()
     {
-        this ( null, null, null );
+        this ( StyleId.documentpane, null, null, null );
     }
 
     /**
@@ -168,7 +169,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
      */
     public WebDocumentPane ( final Customizer<WebTabbedPane> tabbedPaneCustomizer )
     {
-        this ( null, tabbedPaneCustomizer, null );
+        this ( StyleId.documentpane, null, tabbedPaneCustomizer, null );
     }
 
     /**
@@ -178,7 +179,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
      */
     public WebDocumentPane ( final TabTitleComponentProvider<T> tabTitleComponentProvider )
     {
-        this ( null, null, tabTitleComponentProvider );
+        this ( StyleId.documentpane, null, null, tabTitleComponentProvider );
     }
 
     /**
@@ -190,7 +191,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
     public WebDocumentPane ( final Customizer<WebTabbedPane> tabbedPaneCustomizer,
                              final TabTitleComponentProvider<T> tabTitleComponentProvider )
     {
-        this ( null, tabbedPaneCustomizer, tabTitleComponentProvider );
+        this ( StyleId.documentpane, null, tabbedPaneCustomizer, tabTitleComponentProvider );
     }
 
     /**
@@ -201,7 +202,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
      */
     public WebDocumentPane ( final Customizer<WebSplitPane> splitPaneCustomizer, final Customizer<WebTabbedPane> tabbedPaneCustomizer )
     {
-        this ( splitPaneCustomizer, tabbedPaneCustomizer, null );
+        this ( StyleId.documentpane, splitPaneCustomizer, tabbedPaneCustomizer, null );
     }
 
     /**
@@ -214,7 +215,80 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
     public WebDocumentPane ( final Customizer<WebSplitPane> splitPaneCustomizer, final Customizer<WebTabbedPane> tabbedPaneCustomizer,
                              final TabTitleComponentProvider<T> tabTitleComponentProvider )
     {
-        super ( "document-pane" );
+        this ( StyleId.documentpane, splitPaneCustomizer, tabbedPaneCustomizer, tabTitleComponentProvider );
+    }
+
+    /**
+     * Constructs new document pane.
+     *
+     * @param id style ID
+     */
+    public WebDocumentPane ( final StyleId id )
+    {
+        this ( id, null, null, null );
+    }
+
+    /**
+     * Constructs new document pane.
+     *
+     * @param id                   style ID
+     * @param tabbedPaneCustomizer tabbed pane customizer
+     */
+    public WebDocumentPane ( final StyleId id, final Customizer<WebTabbedPane> tabbedPaneCustomizer )
+    {
+        this ( id, null, tabbedPaneCustomizer, null );
+    }
+
+    /**
+     * Constructs new document pane.
+     *
+     * @param id                        style ID
+     * @param tabTitleComponentProvider tab title component customizer
+     */
+    public WebDocumentPane ( final StyleId id, final TabTitleComponentProvider<T> tabTitleComponentProvider )
+    {
+        this ( id, null, null, tabTitleComponentProvider );
+    }
+
+    /**
+     * Constructs new document pane.
+     *
+     * @param id                        style ID
+     * @param tabbedPaneCustomizer      tabbed pane customizer
+     * @param tabTitleComponentProvider tab title component customizer
+     */
+    public WebDocumentPane ( final StyleId id, final Customizer<WebTabbedPane> tabbedPaneCustomizer,
+                             final TabTitleComponentProvider<T> tabTitleComponentProvider )
+    {
+        this ( id, null, tabbedPaneCustomizer, tabTitleComponentProvider );
+    }
+
+    /**
+     * Constructs new document pane.
+     *
+     * @param id                   style ID
+     * @param splitPaneCustomizer  split pane customizer
+     * @param tabbedPaneCustomizer tabbed pane customizer
+     */
+    public WebDocumentPane ( final StyleId id, final Customizer<WebSplitPane> splitPaneCustomizer,
+                             final Customizer<WebTabbedPane> tabbedPaneCustomizer )
+    {
+        this ( id, splitPaneCustomizer, tabbedPaneCustomizer, null );
+    }
+
+    /**
+     * Constructs new document pane.
+     *
+     * @param id                        style ID
+     * @param splitPaneCustomizer       split pane customizer
+     * @param tabbedPaneCustomizer      tabbed pane customizer
+     * @param tabTitleComponentProvider tab title component customizer
+     */
+    public WebDocumentPane ( final StyleId id, final Customizer<WebSplitPane> splitPaneCustomizer,
+                             final Customizer<WebTabbedPane> tabbedPaneCustomizer,
+                             final TabTitleComponentProvider<T> tabTitleComponentProvider )
+    {
+        super ( id );
 
         // Customizers
         this.tabbedPaneCustomizer = tabbedPaneCustomizer;
@@ -711,7 +785,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
             result = toPane;
         }
 
-        // Uodate active pane
+        // Update active pane
         if ( activePane == first || activePane == last )
         {
             activePane = result.findClosestPane ();
@@ -872,7 +946,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
     }
 
     /**
-     * Collects all PaneData available under the specified stucture element into list.
+     * Collects all PaneData available under the specified structure element into list.
      *
      * @param structureData structure element
      * @param panes         PaneData list
@@ -904,7 +978,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
     }
 
     /**
-     * Collects all SplitData available under the specified stucture element into list.
+     * Collects all SplitData available under the specified structure element into list.
      *
      * @param structureData structure element
      * @param splits        SplitData list
@@ -1224,8 +1298,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
     }
 
     /**
-     * Restores document pane state.
-     * <p/>
+     * Updates document pane state.
      * This will remove all added documents and reopen them according to restored state.
      * Make sure that you add all required documents before loading restoring the state.
      * Otherwise in some cases you might get unwanted effect like lost structure parts.
@@ -1257,11 +1330,11 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
     }
 
     /**
-     * Restores document pane state starting from the specified structure.
-     * If null structure is provided restore operation will be started from root.
+     * Restores {@link com.alee.extended.tab.StructureData} restored from provided {@link com.alee.extended.tab.DocumentPaneState}.
      *
      * @param state     document pane state to restore
      * @param documents existing documents
+     * @return {@link com.alee.extended.tab.StructureData} restored from provided {@link com.alee.extended.tab.DocumentPaneState}
      */
     protected StructureData<T> restoreStructureStateImpl ( final DocumentPaneState state, final Map<String, T> documents )
     {
@@ -1274,7 +1347,7 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
             final StructureData<T> last = restoreStructureStateImpl ( splitState.getValue (), documents );
             final SplitData<T> splitData = new SplitData<T> ( this, state.getSplitOrientation (), first, last );
 
-            // todo Location updates should be queued and performed 1 by 1 from top to bottom to avoid incorrect layouting
+            // todo Location updates should be queued and performed 1 by 1 from top to bottom to avoid incorrect layout
             // We have to wait until split is properly sized before restoring divider location
             splitData.getSplitPane ().addComponentListener ( new ComponentAdapter ()
             {
@@ -1503,108 +1576,72 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DocumentAdapter<T> onDocumentOpen ( final DocumentDataRunnable<T> runnable )
     {
         return EventUtils.onDocumentOpen ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DocumentAdapter<T> onDocumentSelection ( final DocumentDataRunnable<T> runnable )
     {
         return EventUtils.onDocumentSelection ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DocumentAdapter<T> onDocumentClosing ( final DocumentDataCancellableRunnable<T> runnable )
     {
         return EventUtils.onDocumentClosing ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DocumentAdapter<T> onDocumentClose ( final DocumentDataRunnable<T> runnable )
     {
         return EventUtils.onDocumentClose ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String key )
     {
         SettingsManager.registerComponent ( this, key );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <V extends DefaultValue> void registerSettings ( final String key, final Class<V> defaultValueClass )
     {
         SettingsManager.registerComponent ( this, key, defaultValueClass );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String key, final Object defaultValue )
     {
         SettingsManager.registerComponent ( this, key, defaultValue );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String group, final String key )
     {
         SettingsManager.registerComponent ( this, group, key );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <V extends DefaultValue> void registerSettings ( final String group, final String key, final Class<V> defaultValueClass )
     {
         SettingsManager.registerComponent ( this, group, key, defaultValueClass );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String group, final String key, final Object defaultValue )
     {
         SettingsManager.registerComponent ( this, group, key, defaultValue );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String key, final boolean loadInitialSettings, final boolean applySettingsChanges )
     {
         SettingsManager.registerComponent ( this, key, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <V extends DefaultValue> void registerSettings ( final String key, final Class<V> defaultValueClass,
                                                             final boolean loadInitialSettings, final boolean applySettingsChanges )
@@ -1612,9 +1649,6 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
         SettingsManager.registerComponent ( this, key, defaultValueClass, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String key, final Object defaultValue, final boolean loadInitialSettings,
                                    final boolean applySettingsChanges )
@@ -1622,9 +1656,6 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
         SettingsManager.registerComponent ( this, key, defaultValue, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <V extends DefaultValue> void registerSettings ( final String group, final String key, final Class<V> defaultValueClass,
                                                             final boolean loadInitialSettings, final boolean applySettingsChanges )
@@ -1632,9 +1663,6 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
         SettingsManager.registerComponent ( this, group, key, defaultValueClass, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String group, final String key, final Object defaultValue, final boolean loadInitialSettings,
                                    final boolean applySettingsChanges )
@@ -1642,36 +1670,24 @@ public class WebDocumentPane<T extends DocumentData> extends WebPanel
         SettingsManager.registerComponent ( this, group, key, defaultValue, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final SettingsProcessor settingsProcessor )
     {
         SettingsManager.registerComponent ( this, settingsProcessor );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void unregisterSettings ()
     {
         SettingsManager.unregisterComponent ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void loadSettings ()
     {
         SettingsManager.loadComponentSettings ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void saveSettings ()
     {

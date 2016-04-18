@@ -18,6 +18,7 @@
 package com.alee.extended.breadcrumb;
 
 import com.alee.global.StyleConstants;
+import com.alee.laf.panel.WebPanelStyle;
 import com.alee.utils.ColorUtils;
 import com.alee.utils.GraphicsUtils;
 import com.alee.utils.ShapeCache;
@@ -28,10 +29,6 @@ import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.RoundRectangle2D;
-
-/**
- * User: mgarin Date: 25.06.12 Time: 17:09
- */
 
 /**
  * This class provides a set of utilities for breadcrumbs.
@@ -78,7 +75,7 @@ public final class BreadcrumbUtils
             final BreadcrumbElementType type = BreadcrumbElementType.getType ( element, wbc );
             final boolean isNone = type.equals ( BreadcrumbElementType.none );
             left = isNone ? 0 : type.equals ( BreadcrumbElementType.start ) ? 0 : wbc.getElementOverlap ();
-            right = isNone ? 0 : type.equals ( BreadcrumbElementType.end ) ? 0 : wbc.getElementOverlap () + wbc.getShadeWidth ();
+            right = isNone ? 0 : type.equals ( BreadcrumbElementType.end ) ? 0 : wbc.getElementOverlap () + WebBreadcrumbStyle.shadeWidth;
         }
         else
         {
@@ -96,18 +93,18 @@ public final class BreadcrumbUtils
      */
     public static void paintElementBackground ( final Graphics2D g2d, final JComponent element )
     {
+        // We do not decorate anything but BreadcrumbElement ancestors
+        if ( !( element instanceof BreadcrumbElement ) )
+        {
+            throw new IllegalArgumentException ( "This method is designed exclusively for breadcrumb elements" );
+        }
+
         // We will paint decoration only when element is inside of the breadcrumb
         // We do it to avoid styling problems and misbehavior
         final Container container = element.getParent ();
         if ( container == null || !( container instanceof WebBreadcrumb ) )
         {
-            return;
-        }
-
-        // Same goes for the painted element - we do not decorate anything but BreadcrumbElement ancestors
-        if ( !( element instanceof BreadcrumbElement ) )
-        {
-            return;
+            throw new IllegalComponentStateException ( "Breadcrumb elements can only be placed in breadcrumb" );
         }
 
         // Antialias
@@ -116,8 +113,8 @@ public final class BreadcrumbUtils
         // Variables
         final WebBreadcrumb breadcrumb = ( WebBreadcrumb ) container;
         final int overlap = breadcrumb.getElementOverlap ();
-        final int shadeWidth = breadcrumb.getShadeWidth ();
-        final int round = breadcrumb.getRound ();
+        final int shadeWidth = WebBreadcrumbStyle.shadeWidth;
+        final int round = WebPanelStyle.round;
         final boolean encloseLast = breadcrumb.isEncloseLastElement ();
         final BreadcrumbElement breadcrumbElement = ( BreadcrumbElement ) element;
         final int w = element.getWidth ();
@@ -454,8 +451,8 @@ public final class BreadcrumbUtils
             final WebBreadcrumb breadcrumb = ( WebBreadcrumb ) container;
             final BreadcrumbElementType type = BreadcrumbElementType.getType ( element, breadcrumb );
             final int overlap = breadcrumb.getElementOverlap ();
-            final int shadeWidth = breadcrumb.getShadeWidth ();
-            final int round = breadcrumb.getRound ();
+            final int shadeWidth = WebBreadcrumbStyle.shadeWidth;
+            final int round = WebPanelStyle.round;
             final boolean encloseLast = breadcrumb.isEncloseLastElement ();
             final boolean ltr = element.getComponentOrientation ().isLeftToRight ();
             return getFillShape ( element, type, w, h, overlap, shadeWidth, round, encloseLast, ltr ).contains ( x, y );

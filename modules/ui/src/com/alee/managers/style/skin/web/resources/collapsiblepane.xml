@@ -1,0 +1,63 @@
+<skin>
+
+    <!-- com.alee.extended.panel.WebCollapsiblePane -->
+
+    <!-- Collapsible pane -->
+    <style type="panel" id="collapsiblepane">
+        <painter class="WebPanelPainter">
+            <undecorated>false</undecorated>
+            <round>2</round>
+            <webColoredBackground>false</webColoredBackground>
+            <paintFocus>true</paintFocus>
+        </painter>
+
+        <!-- Header panel -->
+        <style type="panel" id="collapsiblepane-header">
+            <component>
+                <opaque>true</opaque>
+            </component>
+            <painter class="WebPanelPainter">
+                <undecorated>false</undecorated>
+                <round>2</round>
+                <shadeWidth>0</shadeWidth>
+            </painter>
+        </style>
+
+        <!-- Title label -->
+        <style type="label" id="title" extends="shade" />
+        <style type="label" id="title-top" extends="title" />
+        <style type="label" id="title-left" extends="title">
+            <painter class="WebLabelPainter">
+                <rotation>counterClockwise</rotation>
+            </painter>
+        </style>
+        <style type="label" id="title-bottom" extends="title" />
+        <style type="label" id="title-right" extends="title">
+            <painter class="WebLabelPainter">
+                <rotation>clockwise</rotation>
+            </painter>
+        </style>
+
+        <!-- Expand button -->
+        <style type="button" id="expand">
+            <painter class="WebButtonPainter">
+                <undecorated>true</undecorated>
+                <moveIconOnPress>false</moveIconOnPress>
+            </painter>
+        </style>
+
+        <!-- Content panel -->
+        <style type="panel" id="content">
+            <component>
+                <opaque>false</opaque>
+            </component>
+            <painter class="WebPanelPainter">
+                <undecorated>false</undecorated>
+                <round>2</round>
+                <shadeWidth>0</shadeWidth>
+            </painter>
+        </style>
+
+    </style>
+
+</skin>

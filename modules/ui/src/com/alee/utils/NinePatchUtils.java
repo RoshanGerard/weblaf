@@ -17,10 +17,10 @@
 
 package com.alee.utils;
 
-import com.alee.extended.painter.NinePatchIconPainter;
-import com.alee.extended.painter.NinePatchStatePainter;
 import com.alee.global.StyleConstants;
 import com.alee.graphics.filters.ShadowFilter;
+import com.alee.painter.common.NinePatchIconPainter;
+import com.alee.painter.common.NinePatchStatePainter;
 import com.alee.utils.ninepatch.NinePatchIcon;
 import com.alee.utils.ninepatch.NinePatchInterval;
 import com.alee.utils.ninepatch.NinePatchIntervalType;
@@ -63,6 +63,7 @@ public final class NinePatchUtils
 
     /**
      * Returns cached shade nine-patch icon.
+     * Note that the cache reference is soft and will be erased on demand.
      *
      * @param shadeWidth   shade width
      * @param round        corners round
@@ -87,6 +88,7 @@ public final class NinePatchUtils
 
     /**
      * Returns shade nine-patch icon.
+     * todo Pass component width/height here to check whether it is more than required or not and use it instead sometimes
      *
      * @param shadeWidth   shade width
      * @param round        corners round
@@ -95,44 +97,32 @@ public final class NinePatchUtils
      */
     public static NinePatchIcon createShadeIcon ( final int shadeWidth, final int round, final float shadeOpacity )
     {
-        // Calculating width for temprorary image
-        final int inner = Math.max ( shadeWidth, round ) / 2;
-        final int width = shadeWidth * 2 + inner * 2;
+        // Making round value into real rounding radius
+        final int r = round * 2;
 
-        // Creating template image
-        final BufferedImage bi = new BufferedImage ( width, width, BufferedImage.TYPE_INT_ARGB );
-        final Graphics2D ig = bi.createGraphics ();
-        GraphicsUtils.setupAntialias ( ig );
-        ig.setPaint ( Color.BLACK );
-        ig.fillRoundRect ( shadeWidth, shadeWidth, width - shadeWidth * 2, width - shadeWidth * 2, round * 2, round * 2 );
-        ig.dispose ();
+        // Calculating width for temporary image
+        final int inner = Math.max ( shadeWidth, r ) / 2;
+        final int w = shadeWidth * 2 + inner * 2;
 
         // Creating shade image
-        final ShadowFilter sf = new ShadowFilter ( shadeWidth, 0, 0, shadeOpacity );
-        final BufferedImage shade = sf.filter ( bi, null );
+        final Shape shape = new RoundRectangle2D.Double ( shadeWidth, shadeWidth, w - shadeWidth * 2, w - shadeWidth * 2, r, r );
+        final BufferedImage shade = ImageUtils.createShadeImage ( w, w, shape, shadeWidth, shadeOpacity, true );
 
-        // Clipping shade image
-        final Graphics2D g2d = shade.createGraphics ();
-        GraphicsUtils.setupAntialias ( g2d );
-        g2d.setComposite ( AlphaComposite.getInstance ( AlphaComposite.SRC_IN ) );
-        g2d.setPaint ( StyleConstants.transparent );
-        g2d.fillRoundRect ( shadeWidth, shadeWidth, width - shadeWidth * 2, width - shadeWidth * 2, round * 2, round * 2 );
-        g2d.dispose ();
-
-        // Creating nine-patch icon
+        // Creating nine-patch icon based on shade image
         final NinePatchIcon ninePatchIcon = NinePatchIcon.create ( shade );
         ninePatchIcon.addHorizontalStretch ( 0, shadeWidth + inner, true );
-        ninePatchIcon.addHorizontalStretch ( shadeWidth + inner + 1, width - shadeWidth - inner - 1, false );
-        ninePatchIcon.addHorizontalStretch ( width - shadeWidth - inner, width, true );
+        ninePatchIcon.addHorizontalStretch ( shadeWidth + inner + 1, w - shadeWidth - inner - 1, false );
+        ninePatchIcon.addHorizontalStretch ( w - shadeWidth - inner, w, true );
         ninePatchIcon.addVerticalStretch ( 0, shadeWidth + inner, true );
-        ninePatchIcon.addVerticalStretch ( shadeWidth + inner + 1, width - shadeWidth - inner - 1, false );
-        ninePatchIcon.addVerticalStretch ( width - shadeWidth - inner, width, true );
+        ninePatchIcon.addVerticalStretch ( shadeWidth + inner + 1, w - shadeWidth - inner - 1, false );
+        ninePatchIcon.addVerticalStretch ( w - shadeWidth - inner, w, true );
         ninePatchIcon.setMargin ( shadeWidth );
         return ninePatchIcon;
     }
 
     /**
      * Returns cached inner shade nine-patch icon.
+     * Note that the cache reference is soft and will be erased on demand.
      *
      * @param shadeWidth   shade width
      * @param round        corners round
@@ -176,12 +166,12 @@ public final class NinePatchUtils
      */
     public static NinePatchIcon createInnerShadeIcon ( final int shadeWidth, final int round, final float shadeOpacity )
     {
-        // Calculating width for temprorary image
+        // Calculating width for temporary image
         final int inner = Math.max ( shadeWidth, round );
         int width = shadeWidth * 2 + inner * 2;
 
         // Creating template image
-        final BufferedImage bi = new BufferedImage ( width, width, BufferedImage.TYPE_INT_ARGB );
+        final BufferedImage bi = ImageUtils.createCompatibleImage ( width, width, Transparency.TRANSLUCENT );
         final Graphics2D ig = bi.createGraphics ();
         GraphicsUtils.setupAntialias ( ig );
         final Area area = new Area ( new Rectangle ( 0, 0, width, width ) );
@@ -271,7 +261,7 @@ public final class NinePatchUtils
             }
             else if ( pixelPart != interval.isPixel () )
             {
-                // Add pixel interval only for stretch types and nonpixel for any type
+                // Add pixel interval only for stretch types and non-pixel for any type
                 if ( hv || !interval.isPixel () )
                 {
                     intervals.add ( interval );
@@ -282,7 +272,7 @@ public final class NinePatchUtils
         }
         if ( interval != null )
         {
-            // Add pixel interval only for stretch types and nonpixel for any type
+            // Add pixel interval only for stretch types and non-pixel for any type
             if ( hv || !interval.isPixel () )
             {
                 intervals.add ( interval );

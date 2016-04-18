@@ -1,0 +1,31 @@
+<skin>
+
+    <!-- com.alee.extended.filechooser.WebFileDrop -->
+
+    <!-- Container panel -->
+    <style type="panel" id="filedrop" padding="2,2,2,2">
+        <component>
+            <background>white</background>
+        </component>
+
+        <!-- Single file panel -->
+        <style type="panel" id="plate" padding="0,3,0,0">
+
+            <!-- File name label -->
+            <style type="label" id="file" />
+
+            <!-- Remove button -->
+            <style type="button" id="remove">
+                <painter class="WebButtonPainter">
+                    <round>2</round>
+                    <shadeWidth>3</shadeWidth>
+                    <innerShadeWidth>1</innerShadeWidth>
+                    <rolloverDecoratedOnly>true</rolloverDecoratedOnly>
+                </painter>
+            </style>
+
+        </style>
+
+    </style>
+
+</skin>

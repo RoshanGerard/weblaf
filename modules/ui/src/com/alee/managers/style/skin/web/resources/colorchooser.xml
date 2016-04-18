@@ -1,0 +1,47 @@
+<skin>
+
+    <!-- com.alee.laf.colorchooser.WebColorChooser -->
+
+    <!-- Color chooser -->
+    <style type="colorchooser">
+        <component>
+            <opaque>false</opaque>
+        </component>
+        <painter class="WebColorChooserPainter" />
+    </style>
+
+    <!-- Main content panel -->
+    <style type="panel" id="colorchooser" padding="2,5,2,5">
+        <component>
+            <opaque>false</opaque>
+        </component>
+        <painter class="WebPanelPainter">
+            <webColoredBackground>false</webColoredBackground>
+        </painter>
+
+        <!-- Field title labels -->
+        <style type="label" id="label" extends="shade" />
+
+        <!-- Controls panel -->
+        <style type="panel" id="controls" padding="5,0,3,0">
+            <component>
+                <opaque>false</opaque>
+            </component>
+            <painter class="WebPanelPainter">
+                <webColoredBackground>false</webColoredBackground>
+            </painter>
+
+            <!-- Web-only color check -->
+            <style type="checkbox" id="webonly" padding="0,5,0,5" />
+
+            <!-- Control buttons -->
+            <style type="button" id="control-button" />
+            <style type="button" id="ok" extends="control-button" />
+            <style type="button" id="reset" extends="control-button" />
+            <style type="button" id="cancel" extends="control-button" />
+
+        </style>
+
+    </style>
+
+</skin>

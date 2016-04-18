@@ -18,8 +18,8 @@
 package com.alee.extended.panel;
 
 import com.alee.extended.layout.AccordionLayout;
+import com.alee.managers.style.StyleId;
 import com.alee.laf.panel.WebPanel;
-import com.alee.laf.panel.WebPanelStyle;
 import com.alee.managers.settings.DefaultValue;
 import com.alee.managers.settings.SettingsManager;
 import com.alee.managers.settings.SettingsMethods;
@@ -107,30 +107,18 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
      */
     public WebAccordion ()
     {
-        super ();
-        initializeDefaultSettings ( WebAccordionStyle.accordionStyle );
+        this ( StyleId.accordion );
     }
 
     /**
-     * Constructs empty accordion with the specified style.
+     * Constructs empty accordion with specified style.
      *
-     * @param style accordion style
+     * @param id style ID
      */
-    public WebAccordion ( final AccordionStyle style )
+    public WebAccordion ( final StyleId id )
     {
-        super ();
-        initializeDefaultSettings ( style );
-    }
-
-    /**
-     * Initializes default accordion settings.
-     */
-    protected void initializeDefaultSettings ( final AccordionStyle style )
-    {
-        setPaintFocus ( true );
-        setWebColoredBackground ( false );
+        super ( id );
         setLayout ( new AccordionLayout ( this ) );
-        setAccordionStyle ( style );
     }
 
     /**
@@ -623,25 +611,26 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
         final boolean separated = accordionStyle.equals ( AccordionStyle.separated );
         final boolean hor = orientation == HORIZONTAL;
 
-        // Accordion decoration
-        setUndecorated ( !united );
-
-        // Panes decoration
-        for ( int i = 0; i < panes.size (); i++ )
-        {
-            final WebCollapsiblePane pane = panes.get ( i );
-            pane.setTitlePanePostion ( hor ? LEFT : TOP );
-            if ( separated )
-            {
-                pane.setShadeWidth ( WebPanelStyle.shadeWidth );
-                pane.setPaintSides ( separated, separated, separated, separated );
-            }
-            else
-            {
-                pane.setShadeWidth ( 0 );
-                pane.setPaintSides ( !hor && i > 0, hor && i > 0, false, false );
-            }
-        }
+        // todo Fix
+        //        // Accordion decoration
+        //        setUndecorated ( !united );
+        //
+        //        // Panes decoration
+        //        for ( int i = 0; i < panes.size (); i++ )
+        //        {
+        //            final WebCollapsiblePane pane = panes.get ( i );
+        //            pane.setTitlePanePosition ( hor ? LEFT : TOP );
+        //            if ( separated )
+        //            {
+        //                pane.setShadeWidth ( WebPanelStyle.shadeWidth );
+        //                pane.setPaintSides ( separated, separated, separated, separated );
+        //            }
+        //            else
+        //            {
+        //                pane.setShadeWidth ( 0 );
+        //                pane.setPaintSides ( !hor && i > 0, hor && i > 0, false, false );
+        //            }
+        //        }
 
         // Updating accordion
         revalidate ();
@@ -796,7 +785,9 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
      */
     public Insets getContentMarginAt ( final int index )
     {
-        return panes.get ( index ).getContentMargin ();
+        // todo Fix
+        //        return panes.get ( index ).getContentMargin ();
+        return new Insets ( 0, 0, 0, 0 );
     }
 
     /**
@@ -807,7 +798,8 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
      */
     public void setContentMarginAt ( final int index, final Insets margin )
     {
-        panes.get ( index ).setContentMargin ( margin );
+        // todo Fix
+        //        panes.get ( index ).setContentMargin ( margin );
     }
 
     /**
@@ -948,72 +940,48 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String key )
     {
         SettingsManager.registerComponent ( this, key );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T extends DefaultValue> void registerSettings ( final String key, final Class<T> defaultValueClass )
     {
         SettingsManager.registerComponent ( this, key, defaultValueClass );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String key, final Object defaultValue )
     {
         SettingsManager.registerComponent ( this, key, defaultValue );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String group, final String key )
     {
         SettingsManager.registerComponent ( this, group, key );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T extends DefaultValue> void registerSettings ( final String group, final String key, final Class<T> defaultValueClass )
     {
         SettingsManager.registerComponent ( this, group, key, defaultValueClass );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String group, final String key, final Object defaultValue )
     {
         SettingsManager.registerComponent ( this, group, key, defaultValue );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String key, final boolean loadInitialSettings, final boolean applySettingsChanges )
     {
         SettingsManager.registerComponent ( this, key, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T extends DefaultValue> void registerSettings ( final String key, final Class<T> defaultValueClass,
                                                             final boolean loadInitialSettings, final boolean applySettingsChanges )
@@ -1021,9 +989,6 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
         SettingsManager.registerComponent ( this, key, defaultValueClass, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String key, final Object defaultValue, final boolean loadInitialSettings,
                                    final boolean applySettingsChanges )
@@ -1031,9 +996,6 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
         SettingsManager.registerComponent ( this, key, defaultValue, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T extends DefaultValue> void registerSettings ( final String group, final String key, final Class<T> defaultValueClass,
                                                             final boolean loadInitialSettings, final boolean applySettingsChanges )
@@ -1041,9 +1003,6 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
         SettingsManager.registerComponent ( this, group, key, defaultValueClass, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final String group, final String key, final Object defaultValue, final boolean loadInitialSettings,
                                    final boolean applySettingsChanges )
@@ -1051,36 +1010,24 @@ public class WebAccordion extends WebPanel implements SwingConstants, SettingsMe
         SettingsManager.registerComponent ( this, group, key, defaultValue, loadInitialSettings, applySettingsChanges );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void registerSettings ( final SettingsProcessor settingsProcessor )
     {
         SettingsManager.registerComponent ( this, settingsProcessor );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void unregisterSettings ()
     {
         SettingsManager.unregisterComponent ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void loadSettings ()
     {
         SettingsManager.loadComponentSettings ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void saveSettings ()
     {

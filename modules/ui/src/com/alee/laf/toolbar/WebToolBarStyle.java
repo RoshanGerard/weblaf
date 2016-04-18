@@ -17,7 +17,7 @@
 
 package com.alee.laf.toolbar;
 
-import com.alee.extended.painter.Painter;
+import com.alee.painter.Painter;
 import com.alee.global.StyleConstants;
 
 import java.awt.*;
@@ -74,11 +74,6 @@ public final class WebToolBarStyle
      * Spacing between toolbar components.
      */
     public static int spacing = StyleConstants.spacing;
-
-    /**
-     * Toolbar style.
-     */
-    public static ToolbarStyle toolbarStyle = ToolbarStyle.standalone;
 
     /**
      * Toolbar painter.

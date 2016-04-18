@@ -17,12 +17,18 @@
 
 package com.alee.laf.list;
 
+import com.alee.painter.Paintable;
+import com.alee.painter.Painter;
 import com.alee.laf.WebLookAndFeel;
 import com.alee.laf.list.editor.DefaultListCellEditor;
 import com.alee.laf.list.editor.ListCellEditor;
 import com.alee.laf.list.editor.ListEditListener;
 import com.alee.managers.hotkey.HotkeyData;
 import com.alee.managers.log.Log;
+import com.alee.managers.style.*;
+import com.alee.managers.style.skin.Skin;
+import com.alee.managers.style.skin.StyleListener;
+import com.alee.managers.style.skin.Skinnable;
 import com.alee.managers.tooltip.ToolTipProvider;
 import com.alee.utils.*;
 import com.alee.utils.swing.*;
@@ -33,10 +39,8 @@ import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * This JList extension class provides a direct access to WebListUI methods.
@@ -48,19 +52,26 @@ import java.util.Vector;
  * @author Mikle Garin
  */
 
-public class WebList extends JList implements EventMethods, FontMethods<WebList>, SizeMethods<WebList>
+public class WebList extends JList
+        implements Styleable, Skinnable, Paintable, ShapeProvider, MarginSupport, PaddingSupport, EventMethods, FontMethods<WebList>,
+        SizeMethods<WebList>
 {
     /**
      * todo 1. Generics usage when migrated to JDK8+
      */
 
     /**
-     * List edit lsiteners.
+     * List edit listeners.
      */
     protected List<ListEditListener> editListeners = new ArrayList<ListEditListener> ( 1 );
 
     /**
-     * Whether this list is editable or not.
+     * Mouseover listeners.
+     */
+    protected List<MouseoverListener> mouseoverListeners = new ArrayList<MouseoverListener> ( 1 );
+
+    /**
+     * Whether or not this list is editable.
      */
     protected boolean editable = false;
 
@@ -131,6 +142,65 @@ public class WebList extends JList implements EventMethods, FontMethods<WebList>
     public WebList ( final ListModel dataModel )
     {
         super ( dataModel );
+    }
+
+    /**
+     * Constructs empty list.
+     *
+     * @param id style ID
+     */
+    public WebList ( final StyleId id )
+    {
+        super ();
+        setStyleId ( id );
+    }
+
+    /**
+     * Constructs list with the specified data.
+     *
+     * @param id       style ID
+     * @param listData list data
+     */
+    public WebList ( final StyleId id, final List listData )
+    {
+        super ( listData.toArray () );
+        setStyleId ( id );
+    }
+
+    /**
+     * Constructs list with the specified data.
+     *
+     * @param id       style ID
+     * @param listData list data
+     */
+    public WebList ( final StyleId id, final Vector listData )
+    {
+        super ( listData );
+        setStyleId ( id );
+    }
+
+    /**
+     * Constructs list with the specified data.
+     *
+     * @param id       style ID
+     * @param listData list data
+     */
+    public WebList ( final StyleId id, final Object[] listData )
+    {
+        super ( listData );
+        setStyleId ( id );
+    }
+
+    /**
+     * Constructs list with the specified list model.
+     *
+     * @param id        style ID
+     * @param dataModel list model
+     */
+    public WebList ( final StyleId id, final ListModel dataModel )
+    {
+        super ( dataModel );
+        setStyleId ( id );
     }
 
     /**
@@ -248,40 +318,6 @@ public class WebList extends JList implements EventMethods, FontMethods<WebList>
     }
 
     /**
-     * Returns whether rollover selection is enabled for this list or not.
-     *
-     * @return true if rollover selection is enabled for this list, false otherwise
-     */
-    public boolean isRolloverSelectionEnabled ()
-    {
-        return ListRolloverSelectionAdapter.isInstalled ( this );
-    }
-
-    /**
-     * Sets whether rollover selection is enabled for this list or not.
-     *
-     * @param enabled whether rollover selection is enabled for this list or not
-     */
-    public void setRolloverSelectionEnabled ( final boolean enabled )
-    {
-        if ( enabled )
-        {
-            if ( !isRolloverSelectionEnabled () )
-            {
-                setHighlightRolloverCell ( false );
-                ListRolloverSelectionAdapter.install ( this );
-            }
-        }
-        else
-        {
-            if ( isRolloverSelectionEnabled () )
-            {
-                ListRolloverSelectionAdapter.uninstall ( this );
-            }
-        }
-    }
-
-    /**
      * Installs cell editor for this list.
      *
      * @param listCellEditor new cell editor
@@ -350,6 +386,8 @@ public class WebList extends JList implements EventMethods, FontMethods<WebList>
 
     /**
      * Stops cell editing if possible.
+     *
+     * @return true if cell editing was stopped, false otherwise
      */
     public boolean stopCellEditing ()
     {
@@ -476,147 +514,53 @@ public class WebList extends JList implements EventMethods, FontMethods<WebList>
     }
 
     /**
-     * Returns whether should decorate selected and rollover cells or not.
+     * Returns current mousover index.
      *
-     * @return true if should decorate selected and rollover cells, false otherwise
+     * @return current mousover index
      */
-    public boolean isDecorateSelection ()
+    public int getMouseoverIndex ()
     {
-        return getWebUI ().isDecorateSelection ();
+        return getWebUI ().getMouseoverIndex ();
     }
 
     /**
-     * Sets whether should decorate selected and rollover cells or not.
+     * Returns whether or not cells should be selected on mouseover.
      *
-     * @param decorateSelection whether should decorate selected and rollover cells or not
+     * @return true if cells should be selected on mouseover, false otherwise
      */
-    public void setDecorateSelection ( final boolean decorateSelection )
+    public boolean isMouseoverSelection ()
     {
-        getWebUI ().setDecorateSelection ( decorateSelection );
+        return getWebUI ().isMouseoverSelection ();
     }
 
     /**
-     * Returns whether should highlight rollover cell or not.
+     * Sets whether or not cells should be selected on mouseover.
      *
-     * @return true if rollover cell is being highlighted, false otherwise
+     * @param select whether or not cells should be selected on mouseover
      */
-    public boolean isHighlightRolloverCell ()
+    public void setMouseoverSelection ( final boolean select )
     {
-        return getWebUI ().isHighlightRolloverCell ();
+        getWebUI ().setMouseoverSelection ( select );
     }
 
     /**
-     * Sets whether should highlight rollover cell or not.
+     * Returns whether or not mouseover cells should be highlighted.
      *
-     * @param highlightRolloverCell whether should highlight rollover cell or not
+     * @return true if mouseover cells should be highlighted, false otherwise
      */
-    public void setHighlightRolloverCell ( final boolean highlightRolloverCell )
+    public boolean isMouseoverHighlight ()
     {
-        getWebUI ().setHighlightRolloverCell ( highlightRolloverCell );
+        return getWebUI ().isMouseoverHighlight ();
     }
 
     /**
-     * Returns cells selection rounding.
+     * Sets whether or not mouseover cells should be highlighted.
      *
-     * @return cells selection rounding
+     * @param highlight whether or not mouseover cells should be highlighted
      */
-    public int getSelectionRound ()
+    public void setMouseoverHighlight ( final boolean highlight )
     {
-        return getWebUI ().getSelectionRound ();
-    }
-
-    /**
-     * Sets cells selection rounding.
-     *
-     * @param selectionRound new cells selection rounding
-     */
-    public void setSelectionRound ( final int selectionRound )
-    {
-        getWebUI ().setSelectionRound ( selectionRound );
-    }
-
-    /**
-     * Returns cells selection shade width.
-     *
-     * @return cells selection shade width
-     */
-    public int getSelectionShadeWidth ()
-    {
-        return getWebUI ().getSelectionShadeWidth ();
-    }
-
-    /**
-     * Sets cells selection shade width.
-     *
-     * @param selectionShadeWidth new cells selection shade width
-     */
-    public void setSelectionShadeWidth ( final int selectionShadeWidth )
-    {
-        getWebUI ().setSelectionShadeWidth ( selectionShadeWidth );
-    }
-
-    /**
-     * Returns whether selection should be web-colored or not.
-     * In case it is not web-colored selectionBackgroundColor value will be used as background color.
-     *
-     * @return true if selection should be web-colored, false otherwise
-     */
-    public boolean isWebColoredSelection ()
-    {
-        return getWebUI ().isWebColoredSelection ();
-    }
-
-    /**
-     * Sets whether selection should be web-colored or not.
-     * In case it is not web-colored selectionBackgroundColor value will be used as background color.
-     *
-     * @param webColored whether selection should be web-colored or not
-     */
-    public void setWebColoredSelection ( final boolean webColored )
-    {
-        getWebUI ().setWebColoredSelection ( webColored );
-    }
-
-    /**
-     * Returns selection border color.
-     *
-     * @return selection border color
-     */
-    public Color getSelectionBorderColor ()
-    {
-        return getWebUI ().getSelectionBorderColor ();
-    }
-
-    /**
-     * Sets selection border color.
-     *
-     * @param color selection border color
-     */
-    public void setSelectionBorderColor ( final Color color )
-    {
-        getWebUI ().setSelectionBorderColor ( color );
-    }
-
-    /**
-     * Returns selection background color.
-     * It is used only when webColoredSelection is set to false.
-     *
-     * @return selection background color
-     */
-    public Color getSelectionBackgroundColor ()
-    {
-        return getWebUI ().getSelectionBackgroundColor ();
-    }
-
-    /**
-     * Sets selection background color.
-     * It is used only when webColoredSelection is set to false.
-     *
-     * @param color selection background color
-     */
-    public void setSelectionBackgroundColor ( final Color color )
-    {
-        getWebUI ().setSelectionBackgroundColor ( color );
+        getWebUI ().setMouseoverHighlight ( highlight );
     }
 
     /**
@@ -624,19 +568,213 @@ public class WebList extends JList implements EventMethods, FontMethods<WebList>
      *
      * @return true if list is being automatically scrolled to selection, false otherwise
      */
-    public boolean isAutoScrollToSelection ()
+    public boolean isScrollToSelection ()
     {
-        return getWebUI ().isAutoScrollToSelection ();
+        return getWebUI ().isScrollToSelection ();
     }
 
     /**
      * Sets whether to scroll list down to selection automatically or not.
      *
-     * @param autoScrollToSelection whether to scroll list down to selection automatically or not
+     * @param scroll whether to scroll list down to selection automatically or not
      */
-    public void setAutoScrollToSelection ( final boolean autoScrollToSelection )
+    public void setScrollToSelection ( final boolean scroll )
     {
-        getWebUI ().setAutoScrollToSelection ( autoScrollToSelection );
+        getWebUI ().setScrollToSelection ( scroll );
+    }
+
+    @Override
+    public StyleId getStyleId ()
+    {
+        return getWebUI ().getStyleId ();
+    }
+
+    @Override
+    public StyleId setStyleId ( final StyleId id )
+    {
+        return getWebUI ().setStyleId ( id );
+    }
+
+    @Override
+    public Skin getSkin ()
+    {
+        return StyleManager.getSkin ( this );
+    }
+
+    @Override
+    public Skin setSkin ( final Skin skin )
+    {
+        return StyleManager.setSkin ( this, skin );
+    }
+
+    @Override
+    public Skin setSkin ( final Skin skin, final boolean recursively )
+    {
+        return StyleManager.setSkin ( this, skin, recursively );
+    }
+
+    @Override
+    public Skin restoreSkin ()
+    {
+        return StyleManager.restoreSkin ( this );
+    }
+
+    @Override
+    public void addStyleListener ( final StyleListener listener )
+    {
+        StyleManager.addStyleListener ( this, listener );
+    }
+
+    @Override
+    public void removeStyleListener ( final StyleListener listener )
+    {
+        StyleManager.removeStyleListener ( this, listener );
+    }
+
+    @Override
+    public Map<String, Painter> getCustomPainters ()
+    {
+        return StyleManager.getCustomPainters ( this );
+    }
+
+    @Override
+    public Painter getCustomPainter ()
+    {
+        return StyleManager.getCustomPainter ( this );
+    }
+
+    @Override
+    public Painter getCustomPainter ( final String id )
+    {
+        return StyleManager.getCustomPainter ( this, id );
+    }
+
+    @Override
+    public Painter setCustomPainter ( final Painter painter )
+    {
+        return StyleManager.setCustomPainter ( this, painter );
+    }
+
+    @Override
+    public Painter setCustomPainter ( final String id, final Painter painter )
+    {
+        return StyleManager.setCustomPainter ( this, id, painter );
+    }
+
+    @Override
+    public boolean restoreDefaultPainters ()
+    {
+        return StyleManager.restoreDefaultPainters ( this );
+    }
+
+    @Override
+    public Shape provideShape ()
+    {
+        return getWebUI ().provideShape ();
+    }
+
+    @Override
+    public Insets getMargin ()
+    {
+        return getWebUI ().getMargin ();
+    }
+
+    /**
+     * Sets new margin.
+     *
+     * @param margin new margin
+     */
+    public void setMargin ( final int margin )
+    {
+        setMargin ( margin, margin, margin, margin );
+    }
+
+    /**
+     * Sets new margin.
+     *
+     * @param top    new top margin
+     * @param left   new left margin
+     * @param bottom new bottom margin
+     * @param right  new right margin
+     */
+    public void setMargin ( final int top, final int left, final int bottom, final int right )
+    {
+        setMargin ( new Insets ( top, left, bottom, right ) );
+    }
+
+    @Override
+    public void setMargin ( final Insets margin )
+    {
+        getWebUI ().setMargin ( margin );
+    }
+
+    @Override
+    public Insets getPadding ()
+    {
+        return getWebUI ().getPadding ();
+    }
+
+    /**
+     * Sets new padding.
+     *
+     * @param padding new padding
+     */
+    public void setPadding ( final int padding )
+    {
+        setPadding ( padding, padding, padding, padding );
+    }
+
+    /**
+     * Sets new padding.
+     *
+     * @param top    new top padding
+     * @param left   new left padding
+     * @param bottom new bottom padding
+     * @param right  new right padding
+     */
+    public void setPadding ( final int top, final int left, final int bottom, final int right )
+    {
+        setPadding ( new Insets ( top, left, bottom, right ) );
+    }
+
+    @Override
+    public void setPadding ( final Insets padding )
+    {
+        getWebUI ().setPadding ( padding );
+    }
+
+    /**
+     * Adds mouseover listener.
+     *
+     * @param listener mouseover listener to add
+     */
+    public void addMouseoverListener ( final MouseoverListener listener )
+    {
+        mouseoverListeners.add ( listener );
+    }
+
+    /**
+     * Removes mouseover listener.
+     *
+     * @param listener mouseover listener to remove
+     */
+    public void removeMouseoverListener ( final MouseoverListener listener )
+    {
+        mouseoverListeners.remove ( listener );
+    }
+
+    /**
+     * Informs about mouseover object change.
+     *
+     * @param previous previous mouseover object
+     * @param current  current mouseover object
+     */
+    public void fireMouseoverChanged ( final Object previous, final Object current )
+    {
+        for ( final MouseoverListener listener : mouseoverListeners )
+        {
+            listener.mouseoverChanged ( previous, current );
+        }
     }
 
     /**
@@ -744,7 +882,7 @@ public class WebList extends JList implements EventMethods, FontMethods<WebList>
     }
 
     /**
-     * Removes list edit lsitener from this list.
+     * Removes list edit listener from this list.
      *
      * @param listener list edit listener to remove
      */
@@ -797,450 +935,300 @@ public class WebList extends JList implements EventMethods, FontMethods<WebList>
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMousePress ( final MouseEventRunnable runnable )
     {
         return EventUtils.onMousePress ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMousePress ( final MouseButton mouseButton, final MouseEventRunnable runnable )
     {
         return EventUtils.onMousePress ( this, mouseButton, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMouseEnter ( final MouseEventRunnable runnable )
     {
         return EventUtils.onMouseEnter ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMouseExit ( final MouseEventRunnable runnable )
     {
         return EventUtils.onMouseExit ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMouseDrag ( final MouseEventRunnable runnable )
     {
         return EventUtils.onMouseDrag ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMouseDrag ( final MouseButton mouseButton, final MouseEventRunnable runnable )
     {
         return EventUtils.onMouseDrag ( this, mouseButton, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMouseClick ( final MouseEventRunnable runnable )
     {
         return EventUtils.onMouseClick ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMouseClick ( final MouseButton mouseButton, final MouseEventRunnable runnable )
     {
         return EventUtils.onMouseClick ( this, mouseButton, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onDoubleClick ( final MouseEventRunnable runnable )
     {
         return EventUtils.onDoubleClick ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MouseAdapter onMenuTrigger ( final MouseEventRunnable runnable )
     {
         return EventUtils.onMenuTrigger ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public KeyAdapter onKeyType ( final KeyEventRunnable runnable )
     {
         return EventUtils.onKeyType ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public KeyAdapter onKeyType ( final HotkeyData hotkey, final KeyEventRunnable runnable )
     {
         return EventUtils.onKeyType ( this, hotkey, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public KeyAdapter onKeyPress ( final KeyEventRunnable runnable )
     {
         return EventUtils.onKeyPress ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public KeyAdapter onKeyPress ( final HotkeyData hotkey, final KeyEventRunnable runnable )
     {
         return EventUtils.onKeyPress ( this, hotkey, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public KeyAdapter onKeyRelease ( final KeyEventRunnable runnable )
     {
         return EventUtils.onKeyRelease ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public KeyAdapter onKeyRelease ( final HotkeyData hotkey, final KeyEventRunnable runnable )
     {
         return EventUtils.onKeyRelease ( this, hotkey, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FocusAdapter onFocusGain ( final FocusEventRunnable runnable )
     {
         return EventUtils.onFocusGain ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FocusAdapter onFocusLoss ( final FocusEventRunnable runnable )
     {
         return EventUtils.onFocusLoss ( this, runnable );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setPlainFont ()
     {
         return SwingUtils.setPlainFont ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setPlainFont ( final boolean apply )
     {
         return SwingUtils.setPlainFont ( this, apply );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isPlainFont ()
     {
         return SwingUtils.isPlainFont ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setBoldFont ()
     {
         return SwingUtils.setBoldFont ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setBoldFont ( final boolean apply )
     {
         return SwingUtils.setBoldFont ( this, apply );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isBoldFont ()
     {
         return SwingUtils.isBoldFont ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setItalicFont ()
     {
         return SwingUtils.setItalicFont ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setItalicFont ( final boolean apply )
     {
         return SwingUtils.setItalicFont ( this, apply );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isItalicFont ()
     {
         return SwingUtils.isItalicFont ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setFontStyle ( final boolean bold, final boolean italic )
     {
         return SwingUtils.setFontStyle ( this, bold, italic );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setFontStyle ( final int style )
     {
         return SwingUtils.setFontStyle ( this, style );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setFontSize ( final int fontSize )
     {
         return SwingUtils.setFontSize ( this, fontSize );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList changeFontSize ( final int change )
     {
         return SwingUtils.changeFontSize ( this, change );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getFontSize ()
     {
         return SwingUtils.getFontSize ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setFontSizeAndStyle ( final int fontSize, final boolean bold, final boolean italic )
     {
         return SwingUtils.setFontSizeAndStyle ( this, fontSize, bold, italic );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setFontSizeAndStyle ( final int fontSize, final int style )
     {
         return SwingUtils.setFontSizeAndStyle ( this, fontSize, style );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setFontName ( final String fontName )
     {
         return SwingUtils.setFontName ( this, fontName );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getFontName ()
     {
         return SwingUtils.getFontName ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getPreferredWidth ()
     {
         return SizeUtils.getPreferredWidth ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setPreferredWidth ( final int preferredWidth )
     {
         return SizeUtils.setPreferredWidth ( this, preferredWidth );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getPreferredHeight ()
     {
         return SizeUtils.getPreferredHeight ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setPreferredHeight ( final int preferredHeight )
     {
         return SizeUtils.setPreferredHeight ( this, preferredHeight );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getMinimumWidth ()
     {
         return SizeUtils.getMinimumWidth ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setMinimumWidth ( final int minimumWidth )
     {
         return SizeUtils.setMinimumWidth ( this, minimumWidth );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getMinimumHeight ()
     {
         return SizeUtils.getMinimumHeight ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setMinimumHeight ( final int minimumHeight )
     {
         return SizeUtils.setMinimumHeight ( this, minimumHeight );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getMaximumWidth ()
     {
         return SizeUtils.getMaximumWidth ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setMaximumWidth ( final int maximumWidth )
     {
         return SizeUtils.setMaximumWidth ( this, maximumWidth );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getMaximumHeight ()
     {
         return SizeUtils.getMaximumHeight ( this );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setMaximumHeight ( final int maximumHeight )
     {
         return SizeUtils.setMaximumHeight ( this, maximumHeight );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Dimension getPreferredSize ()
     {
         return SizeUtils.getPreferredSize ( this, super.getPreferredSize () );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WebList setPreferredSize ( final int width, final int height )
     {

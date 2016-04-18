@@ -36,7 +36,7 @@ import java.util.zip.ZipInputStream;
 
 /**
  * This class provides a set of utilities to simplify work with Reflection API.
- * There is also a few methods to retrieve full JAR archive structure.
+ * There are also a few methods to retrieve complete JAR archive structure.
  *
  * @author Mikle Garin
  */
@@ -46,7 +46,7 @@ public final class ReflectUtils
     /**
      * Whether should allow safe methods to log errors or not.
      * By default it is disabled to hide some WebLaF exceptions which occur due to various method checks.
-     * You can enable it in case you need a depper look into whats happening here.
+     * You can enable it in case you need a deeper look into whats happening here.
      */
     private static boolean safeMethodsLoggingEnabled = false;
 
@@ -73,87 +73,6 @@ public final class ReflectUtils
     public static void setSafeMethodsLoggingEnabled ( final boolean enabled )
     {
         ReflectUtils.safeMethodsLoggingEnabled = enabled;
-    }
-
-    /**
-     * Returns cloned object instance.
-     * This method will clone fields directly instead of calling clone method on the object.
-     * Object fields will be cloned normally through clone method if they implement Cloneable interface.
-     *
-     * @param object    object to clone
-     * @param arguments class constructor arguments
-     * @param <T>       cloned object type
-     * @return cloned object instance
-     */
-    public static <T> T cloneByFieldsSafely ( final T object, final Object... arguments )
-    {
-        try
-        {
-            return cloneByFields ( object, arguments );
-        }
-        catch ( final Throwable e )
-        {
-            if ( safeMethodsLoggingEnabled )
-            {
-                Log.warn ( "ReflectionUtils method failed: cloneByFieldsSafely", e );
-            }
-            return null;
-        }
-
-    }
-
-    /**
-     * Returns cloned object instance.
-     * This method will clone fields directly instead of calling clone method on the object.
-     * Object fields will be cloned normally through clone method if they implement Cloneable interface.
-     *
-     * @param object    object to clone
-     * @param arguments class constructor arguments
-     * @param <T>       cloned object type
-     * @return cloned object instance
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     */
-    public static <T> T cloneByFields ( final T object, final Object... arguments )
-            throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException
-    {
-        final T copy = ReflectUtils.createInstance ( object.getClass (), arguments );
-        final List<Field> fields = getFields ( object );
-        for ( final Field field : fields )
-        {
-            // Making field accessible
-            // Otherwise final or non-public fields won't allow any operations on them
-            field.setAccessible ( true );
-
-            // Skip transient fields
-            if ( Modifier.isTransient ( field.getModifiers () ) )
-            {
-                continue;
-            }
-
-            // Retrieving original object field value
-            final Object value = field.get ( object );
-
-            // Updating field
-            // todo Try using setters?
-            final Object v;
-            if ( value instanceof Collection )
-            {
-                v = CollectionUtils.cloneOrCopy ( ( Collection ) value );
-            }
-            else if ( value instanceof Cloneable )
-            {
-                v = clone ( ( Cloneable ) value );
-            }
-            else
-            {
-                v = value;
-            }
-            field.set ( copy, v );
-        }
-        return copy;
     }
 
     /**
@@ -238,7 +157,7 @@ public final class ReflectUtils
      * @param classType type of the class where field can be located
      * @param fieldName field name
      * @return specified class field's type
-     * @throws NoSuchFieldException
+     * @throws java.lang.NoSuchFieldException if field was not found
      */
     public static Class<?> getFieldType ( final Class classType, final String fieldName ) throws NoSuchFieldException
     {
@@ -276,7 +195,7 @@ public final class ReflectUtils
      * @param classType type of the class where field can be located
      * @param fieldName field name
      * @return specified class field
-     * @throws NoSuchFieldException
+     * @throws java.lang.NoSuchFieldException if field was not found
      */
     public static Field getField ( final Class classType, final String fieldName ) throws NoSuchFieldException
     {
@@ -298,9 +217,8 @@ public final class ReflectUtils
      * @param classType type of the class where field can be located
      * @param fieldName field name
      * @return specified class field
-     * @throws NoSuchFieldException
      */
-    public static Field getFieldImpl ( final Class classType, final String fieldName ) throws NoSuchFieldException
+    public static Field getFieldImpl ( final Class classType, final String fieldName )
     {
         Field field;
         try
@@ -348,11 +266,11 @@ public final class ReflectUtils
      * @param object object instance
      * @param field  object field
      * @param value  field value
-     * @throws IllegalAccessException
-     * @throws NoSuchFieldException
+     * @throws java.lang.NoSuchFieldException   if field was not found
+     * @throws java.lang.IllegalAccessException if field is inaccessible
      */
     public static void setFieldValue ( final Object object, final String field, final Object value )
-            throws IllegalAccessException, NoSuchFieldException
+            throws NoSuchFieldException, IllegalAccessException
     {
         final Field actualField = getField ( object.getClass (), field );
         actualField.setAccessible ( true );
@@ -392,8 +310,8 @@ public final class ReflectUtils
      * @param field  object field
      * @param <T>    field value type
      * @return object field value
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchFieldException   if field was not found
+     * @throws java.lang.IllegalAccessException if field is inaccessible
      */
     public static <T> T getFieldValue ( final Object object, final String field ) throws NoSuchFieldException, IllegalAccessException
     {
@@ -431,8 +349,8 @@ public final class ReflectUtils
      * @param classType class type
      * @param fieldName class field name
      * @return static field value from the specified class
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchFieldException   if field was not found
+     * @throws java.lang.IllegalAccessException if field is inaccessible
      */
     public static <T> T getStaticFieldValue ( final Class classType, final String fieldName )
             throws NoSuchFieldException, IllegalAccessException
@@ -450,7 +368,7 @@ public final class ReflectUtils
     {
         try
         {
-            return Class.forName ( canonicalName );
+            return canonicalName != null ? Class.forName ( canonicalName ) : null;
         }
         catch ( final ClassNotFoundException e )
         {
@@ -467,7 +385,7 @@ public final class ReflectUtils
      *
      * @param canonicalName class canonical name
      * @return class for the specified canonical name
-     * @throws ClassNotFoundException
+     * @throws java.lang.ClassNotFoundException if class was not found
      */
     public static <T> Class<T> getClass ( final String canonicalName ) throws ClassNotFoundException
     {
@@ -490,13 +408,13 @@ public final class ReflectUtils
      *
      * @param jarClass          any class within the JAR
      * @param allowedExtensions list of extension filters
-     * @param allowedPackgages  list of allowed packages
+     * @param allowedPackages   list of allowed packages
      * @return JAR archive structure
      */
     public static JarStructure getJarStructure ( final Class jarClass, final List<String> allowedExtensions,
-                                                 final List<String> allowedPackgages )
+                                                 final List<String> allowedPackages )
     {
-        return getJarStructure ( jarClass, allowedExtensions, allowedPackgages, null );
+        return getJarStructure ( jarClass, allowedExtensions, allowedPackages, null );
     }
 
     /**
@@ -504,12 +422,12 @@ public final class ReflectUtils
      *
      * @param jarClass          any class within the JAR
      * @param allowedExtensions list of extension filters
-     * @param allowedPackgages  list of allowed packages
+     * @param allowedPackages   list of allowed packages
      * @param listener          jar download listener
      * @return JAR archive structure
      */
     public static JarStructure getJarStructure ( final Class jarClass, final List<String> allowedExtensions,
-                                                 final List<String> allowedPackgages, final FileDownloadListener listener )
+                                                 final List<String> allowedPackages, final FileDownloadListener listener )
     {
         try
         {
@@ -533,13 +451,16 @@ public final class ReflectUtils
                 else
                 {
                     // Remote jar-file
-                    jarFile = FileUtils.downloadFile ( jarUrl.toString (), File.createTempFile ( "jar_file", ".tmp" ), listener );
+                    jarFile = FileUtils.downloadFile ( jarUrl.toString (), File.createTempFile ( jarUrl.getFile (), ".tmp" ), listener );
                 }
 
-                // Creating
-                final JarEntry jarEntry = new JarEntry ( JarEntryType.jarEntry, jarFile.getName () );
-                final JarStructure jarStructure = new JarStructure ( jarEntry );
+                // Creating JAR structure
+                final JarStructure jarStructure = new JarStructure ();
                 jarStructure.setJarLocation ( jarFile.getAbsolutePath () );
+
+                // Updating root element
+                final JarEntry rootEntry = new JarEntry ( jarStructure, JarEntryType.jarEntry, jarFile.getName () );
+                jarStructure.setRoot ( rootEntry );
 
                 // Reading all entries and parsing them into structure
                 final ZipInputStream zip = new ZipInputStream ( jarUrl.openStream () );
@@ -547,10 +468,10 @@ public final class ReflectUtils
                 while ( ( zipEntry = zip.getNextEntry () ) != null )
                 {
                     final String entryName = zipEntry.getName ();
-                    if ( isAllowedPackage ( entryName, allowedPackgages ) &&
+                    if ( isAllowedPackage ( entryName, allowedPackages ) &&
                             ( zipEntry.isDirectory () || isAllowedExtension ( entryName, allowedExtensions ) ) )
                     {
-                        parseElement ( jarEntry, entryName, zipEntry );
+                        parseElement ( jarStructure, rootEntry, entryName, zipEntry );
                     }
                 }
                 zip.close ();
@@ -625,7 +546,7 @@ public final class ReflectUtils
         }
         else
         {
-            final String entryExt = FileUtils.getFileExtPart ( entryName, true ).toLowerCase ();
+            final String entryExt = FileUtils.getFileExtPart ( entryName, true ).toLowerCase ( Locale.ROOT );
             return allowedExtensions.contains ( entryExt );
         }
     }
@@ -633,19 +554,19 @@ public final class ReflectUtils
     /**
      * Returns whether JAR entry with the specified name is allowed by the packages list or not.
      *
-     * @param entryName        JAR entry name
-     * @param allowedPackgages list of allowed packages
+     * @param entryName       JAR entry name
+     * @param allowedPackages list of allowed packages
      * @return true if JAR entry with the specified name is allowed by the packages list, false otherwise
      */
-    private static boolean isAllowedPackage ( final String entryName, final List<String> allowedPackgages )
+    private static boolean isAllowedPackage ( final String entryName, final List<String> allowedPackages )
     {
-        if ( allowedPackgages == null || allowedPackgages.size () == 0 )
+        if ( allowedPackages == null || allowedPackages.size () == 0 )
         {
             return true;
         }
         else
         {
-            for ( final String packageStart : allowedPackgages )
+            for ( final String packageStart : allowedPackages )
             {
                 if ( entryName.startsWith ( packageStart ) )
                 {
@@ -659,11 +580,13 @@ public final class ReflectUtils
     /**
      * Parses single JAR entry with the specified name.
      *
-     * @param jarEntry  JAR entry
-     * @param entryName JAR entry name
-     * @param zipEntry  ZIP entry
+     * @param jarStructure JAR structure
+     * @param jarEntry     JAR entry
+     * @param entryName    JAR entry name
+     * @param zipEntry     ZIP entry
      */
-    private static void parseElement ( final JarEntry jarEntry, final String entryName, final ZipEntry zipEntry )
+    private static void parseElement ( final JarStructure jarStructure, final JarEntry jarEntry, final String entryName,
+                                       final ZipEntry zipEntry )
     {
         final String[] path = entryName.split ( "/" );
         JarEntry currentLevel = jarEntry;
@@ -675,7 +598,7 @@ public final class ReflectUtils
                 JarEntry child = currentLevel.getChildByName ( path[ i ] );
                 if ( child == null )
                 {
-                    child = new JarEntry ( JarEntryType.packageEntry, path[ i ], currentLevel );
+                    child = new JarEntry ( jarStructure, JarEntryType.packageEntry, path[ i ], currentLevel );
                     child.setZipEntry ( zipEntry );
                     currentLevel.addChild ( child );
                 }
@@ -684,7 +607,7 @@ public final class ReflectUtils
             else
             {
                 // We reached last element
-                final JarEntry newEntry = new JarEntry ( getJarEntryType ( path[ i ] ), path[ i ], currentLevel );
+                final JarEntry newEntry = new JarEntry ( jarStructure, getJarEntryType ( path[ i ] ), path[ i ], currentLevel );
                 newEntry.setZipEntry ( zipEntry );
                 currentLevel.addChild ( newEntry );
             }
@@ -739,7 +662,7 @@ public final class ReflectUtils
      */
     public static Class getCallerClass ( final int additionalDepth )
     {
-        // Depth explaination:
+        // Depth explanation:
         // 0 - this method class
         // 1 - this method caller class
         // 2 - caller's class caller
@@ -915,11 +838,11 @@ public final class ReflectUtils
      * @param canonicalClassName canonical class name
      * @param arguments          class constructor arguments
      * @return newly created class instance
-     * @throws ClassNotFoundException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
+     * @throws java.lang.ClassNotFoundException            if class was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
+     * @throws java.lang.InstantiationException            if the class is abstract
+     * @throws java.lang.NoSuchMethodException             if method was not found
      */
     public static <T> T createInstance ( final String canonicalClassName, final Object... arguments )
             throws ClassNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException
@@ -956,10 +879,10 @@ public final class ReflectUtils
      * @param theClass  class to process
      * @param arguments class constructor arguments
      * @return newly created class instance
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
+     * @throws java.lang.InstantiationException            if the class is abstract
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     public static <T> T createInstance ( final Class theClass, final Object... arguments )
             throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException
@@ -981,55 +904,57 @@ public final class ReflectUtils
      * @param theClass       class to process
      * @param parameterTypes constructor argument types
      * @return class constructor for the specified argument types
-     * @throws NoSuchMethodException
+     * @throws java.lang.NoSuchMethodException if constructor was not found
      */
     public static Constructor getConstructor ( final Class theClass, final Class... parameterTypes ) throws NoSuchMethodException
     {
         // todo Constructors priority check (by super types)
         // todo For now some constructor with [Object] arg might be used instead of constructor with [String]
-        // todo To avoid issues don't call constructors with same amount of arguments and which are castable to each other
-        if ( parameterTypes.length == 0 )
+        // todo To avoid issues don't call constructors with same amount of arguments and which are cast-able to each other
+
+        // This enhancement was a bad idea and was disabled
+        // In case constructor is protected/private it won't be found
+        // if ( parameterTypes.length == 0 )
+        // {
+        //     return theClass.getConstructor ();
+        // }
+
+        // Constructors can be used only from the topmost class so we don't need to look for them in superclasses
+        for ( final Constructor constructor : theClass.getDeclaredConstructors () )
         {
-            return theClass.getConstructor ();
-        }
-        else
-        {
-            // Constructors can be used only from the topmost class so we don't need to look for them in superclasses
-            for ( final Constructor constructor : theClass.getDeclaredConstructors () )
+            // Retrieving constructor parameter types
+            final Class[] types = constructor.getParameterTypes ();
+
+            // Checking some simple cases first
+            if ( types.length != parameterTypes.length )
             {
-                final Class[] types = constructor.getParameterTypes ();
-
                 // Inappropriate constructor
-                if ( types.length != parameterTypes.length )
-                {
-                    continue;
-                }
-
+                continue;
+            }
+            else if ( types.length == 0 )
+            {
                 // Constructor with no parameters
-                if ( types.length == parameterTypes.length && types.length == 0 )
-                {
-                    return constructor;
-                }
-
-                // Checking types
-                boolean fits = true;
-                for ( int i = 0; i < types.length; i++ )
-                {
-                    if ( !isAssignable ( types[ i ], parameterTypes[ i ] ) )
-                    {
-                        fits = false;
-                        break;
-                    }
-                }
-                if ( fits )
-                {
-                    return constructor;
-                }
+                return constructor;
             }
 
-            // Throwing proper exception that constructor was not found
-            throw new NoSuchMethodException ( theClass.getCanonicalName () + argumentTypesToString ( parameterTypes ) );
+            // Checking parameter types
+            boolean fits = true;
+            for ( int i = 0; i < types.length; i++ )
+            {
+                if ( !isAssignable ( types[ i ], parameterTypes[ i ] ) )
+                {
+                    fits = false;
+                    break;
+                }
+            }
+            if ( fits )
+            {
+                return constructor;
+            }
         }
+
+        // Throwing proper exception that constructor was not found
+        throw new NoSuchMethodException ( theClass.getCanonicalName () + argumentTypesToString ( parameterTypes ) );
     }
 
     /**
@@ -1065,10 +990,10 @@ public final class ReflectUtils
      * @param methodName         static method name
      * @param arguments          method arguments
      * @return result of called static method
-     * @throws ClassNotFoundException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
-     * @throws IllegalAccessException
+     * @throws java.lang.ClassNotFoundException            if class was not found
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     public static <T> T callStaticMethod ( final String canonicalClassName, final String methodName, final Object... arguments )
             throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException
@@ -1109,9 +1034,9 @@ public final class ReflectUtils
      * @param methodName static method name
      * @param arguments  static method arguments
      * @return result given by called static method
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     public static <T> T callStaticMethod ( final Class theClass, final String methodName, final Object... arguments )
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
@@ -1151,9 +1076,9 @@ public final class ReflectUtils
      * @param methodName method name
      * @param arguments  method arguments
      * @return list of results returned by called methods
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     public static <T> List<T> callMethods ( final List objects, final String methodName, final Object... arguments )
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
@@ -1197,9 +1122,9 @@ public final class ReflectUtils
      * @param methodName method name
      * @param arguments  method arguments
      * @return an array of results returned by called methods
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     public static Object[] callMethods ( final Object[] objects, final String methodName, final Object... arguments )
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
@@ -1245,9 +1170,10 @@ public final class ReflectUtils
      * @param methodName method name
      * @param arguments  method arguments
      * @return result given by called method
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
+     * @throws java.lang.ExceptionInInitializerError       if the initialization provoked by this method fails
      */
     public static <T> T callMethod ( final Object object, final String methodName, final Object... arguments )
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
@@ -1257,12 +1183,12 @@ public final class ReflectUtils
     }
 
     /**
-     * Returns field getter methor by popular method naming pattern.
+     * Returns field getter method by popular method naming pattern.
      * Basically those are "getFieldName"-like and "isFieldName"-like method names.
      *
      * @param object object
      * @param field  field name
-     * @return field getter methor by popular method naming pattern
+     * @return field getter method by popular method naming pattern
      */
     public static Method getFieldGetter ( final Object object, final String field )
     {
@@ -1270,12 +1196,12 @@ public final class ReflectUtils
     }
 
     /**
-     * Returns field getter methor by popular method naming pattern.
+     * Returns field getter method by popular method naming pattern.
      * Basically those are "getFieldName"-like and "isFieldName"-like method names.
      *
      * @param aClass object class
      * @param field  field name
-     * @return field getter methor by popular method naming pattern
+     * @return field getter method by popular method naming pattern
      */
     public static Method getFieldGetter ( final Class aClass, final String field )
     {
@@ -1301,7 +1227,7 @@ public final class ReflectUtils
      */
     public static String getSetterMethodName ( final String field )
     {
-        return "set" + field.substring ( 0, 1 ).toUpperCase ( Locale.ENGLISH ) + field.substring ( 1 );
+        return "set" + field.substring ( 0, 1 ).toUpperCase ( Locale.ROOT ) + field.substring ( 1 );
     }
 
     /**
@@ -1312,7 +1238,7 @@ public final class ReflectUtils
      */
     public static String getGetterMethodName ( final String field )
     {
-        return "get" + field.substring ( 0, 1 ).toUpperCase ( Locale.ENGLISH ) + field.substring ( 1 );
+        return "get" + field.substring ( 0, 1 ).toUpperCase ( Locale.ROOT ) + field.substring ( 1 );
     }
 
     /**
@@ -1323,7 +1249,7 @@ public final class ReflectUtils
      */
     public static String getIsGetterMethodName ( final String field )
     {
-        return "is" + field.substring ( 0, 1 ).toUpperCase ( Locale.ENGLISH ) + field.substring ( 1 );
+        return "is" + field.substring ( 0, 1 ).toUpperCase ( Locale.ROOT ) + field.substring ( 1 );
     }
 
     /**
@@ -1374,9 +1300,9 @@ public final class ReflectUtils
      * @param methodName method name
      * @param arguments  method arguments
      * @return object's method with the specified name and arguments
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     public static Method getMethod ( final Object object, final String methodName, final Object... arguments )
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
@@ -1392,16 +1318,16 @@ public final class ReflectUtils
      * @param methodName method name
      * @param arguments  method arguments
      * @return object's method with the specified name and arguments
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     public static Method getMethod ( final Class aClass, final String methodName, final Object... arguments )
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
     {
         // todo Methods priority check (by super types)
         // todo For now some method with [Object] arg might be used instead of method with [String]
-        // todo To avoid issues don't call methods with same amount of arguments and which are castable to each other
+        // todo To avoid issues don't call methods with same amount of arguments and which are cast-able to each other
 
         // Method key
         final Class[] classTypes = getClassTypes ( arguments );
@@ -1438,9 +1364,9 @@ public final class ReflectUtils
      * @param methodName method name
      * @param arguments  method arguments
      * @return object's method with the specified name and arguments
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     protected static Method getMethodImpl ( final Class aClass, final String methodName, final Object[] arguments )
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException
@@ -1470,12 +1396,10 @@ public final class ReflectUtils
      * @param methodName   method name
      * @param types        method argument types
      * @return object's method with the specified name and arguments
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
+     * @throws java.lang.NoSuchMethodException if method was not found
      */
     private static Method getMethod ( final Class topClass, final Class currentClass, final String methodName, final Class[] types )
-            throws IllegalAccessException, InvocationTargetException, NoSuchMethodException
+            throws NoSuchMethodException
     {
         // Searching for the specified method in object's class or one of its superclasses
         for ( final Method method : currentClass.getDeclaredMethods () )
@@ -1547,9 +1471,9 @@ public final class ReflectUtils
      * @param object object to clone
      * @param <T>    cloned object type
      * @return cloned object
-     * @throws NoSuchMethodException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
+     * @throws java.lang.NoSuchMethodException             if method was not found
+     * @throws java.lang.reflect.InvocationTargetException if method throws an exception
+     * @throws java.lang.IllegalAccessException            if method is inaccessible
      */
     public static <T extends Cloneable> T clone ( final T object )
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException
@@ -1578,50 +1502,11 @@ public final class ReflectUtils
     }
 
     /**
-     * Returns cloned object.
-     *
-     * @param object object to clone
-     * @param <T>    cloned object type
-     * @return cloned object
-     * @throws NoSuchMethodException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     */
-    public static <T> T cloneObject ( final T object ) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException
-    {
-        if ( object == null )
-        {
-            return null;
-        }
-        return ReflectUtils.callMethod ( object, "clone" );
-    }
-
-    /**
-     * Returns cloned object.
-     *
-     * @param object object to clone
-     * @param <T>    cloned object type
-     * @return cloned object
-     */
-    public static <T> T cloneObjectSafely ( final T object )
-    {
-        if ( object == null )
-        {
-            return null;
-        }
-        else if ( object.getClass ().isPrimitive () )
-        {
-            return object;
-        }
-        return ReflectUtils.callMethodSafely ( object, "clone" );
-    }
-
-    /**
      * Returns class loaded for the specified canonical class name.
      *
      * @param canonicalClassName canonical class name
      * @return class loaded for the specified canonical class name
-     * @throws ClassNotFoundException
+     * @throws java.lang.ClassNotFoundException if class was not found
      */
     public static Class loadClass ( final String canonicalClassName ) throws ClassNotFoundException
     {

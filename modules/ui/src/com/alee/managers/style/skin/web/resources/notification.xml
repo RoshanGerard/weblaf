@@ -1,0 +1,28 @@
+<skin>
+
+    <!-- com.alee.managers.notification.WebNotification -->
+
+    <!-- Notification -->
+    <style type="panel" id="notification" extends="heavyweightpopup" padding="15,20,15,20">
+        <component>
+            <opaque>false</opaque>
+        </component>
+        <painter class="WebPanelPainter">
+            <decorations>
+                <decoration round="4">
+                    <BasicShade type="outer" transparency="0.65" width="32" />
+                    <LineBorder color="170,170,170" />
+                    <GradientBackground type="linear" from="0,0" to="0,1">
+                        <color>245,245,245</color>
+                        <color>223,223,223</color>
+                    </GradientBackground>
+                </decoration>
+            </decorations>
+        </painter>
+
+        <!-- Option button -->
+        <style type="button" id="option" />
+
+    </style>
+
+</skin>

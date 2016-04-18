@@ -17,11 +17,11 @@
 
 package com.alee.laf.desktoppane;
 
-import com.alee.extended.panel.BorderPanel;
 import com.alee.global.StyleConstants;
 import com.alee.laf.WebFonts;
 import com.alee.laf.button.WebButton;
 import com.alee.laf.label.WebLabel;
+import com.alee.managers.style.StyleId;
 import com.alee.utils.LafUtils;
 
 import javax.swing.*;
@@ -29,7 +29,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import java.awt.*;
 
 /**
- * User: mgarin Date: 24.08.11 Time: 20:30
+ * @author Mikle Garin
  */
 
 public class WebInternalFrameTitlePane extends BasicInternalFrameTitlePane
@@ -53,6 +53,12 @@ public class WebInternalFrameTitlePane extends BasicInternalFrameTitlePane
         }
     }
 
+    /**
+     * Returns whether or not this title is used for frame.
+     * todo This probably should be eliminated completely
+     *
+     * @return true if this title is used for frame, false otherwise
+     */
     protected boolean isFrameTitle ()
     {
         return true;
@@ -78,7 +84,7 @@ public class WebInternalFrameTitlePane extends BasicInternalFrameTitlePane
     @Override
     protected void addSubComponents ()
     {
-        add ( new BorderPanel ( new WebLabel ( frame.getTitle (), new Icon ()
+        final Icon titleIcon = new Icon ()
         {
             @Override
             public void paintIcon ( final Component c, final Graphics g, final int x, final int y )
@@ -100,17 +106,22 @@ public class WebInternalFrameTitlePane extends BasicInternalFrameTitlePane
             {
                 return frame.getFrameIcon () != null ? frame.getFrameIcon ().getIconHeight () : 16;
             }
-        }, WebLabel.LEFT )
-        {
-            {
-                setOpaque ( false );
-                setForeground ( Color.WHITE );
-                setFont ( WebFonts.getSystemTitleFont () );
-            }
-        }, isFrameTitle () ? 3 : 1, 3, 0, 3 ), BorderLayout.CENTER );
+        };
 
-        final int buttons = ( frame.isIconifiable () ? 1 : 0 ) + ( frame.isMaximizable () ? 1 : 0 ) +
-                ( frame.isClosable () ? 1 : 0 );
+        final WebLabel titleLabel = new WebLabel ( StyleId.internalframeTitleLabel.at ( frame ), titleIcon, WebLabel.LEFT )
+        {
+            @Override
+            public String getText ()
+            {
+                return frame.getTitle ();
+            }
+        };
+        titleLabel.setForeground ( Color.WHITE );
+        titleLabel.setFont ( WebFonts.getSystemTitleFont () );
+        titleLabel.setMargin ( isFrameTitle () ? 3 : 1, 3, 0, 3 );
+        add ( titleLabel, BorderLayout.CENTER );
+
+        final int buttons = ( frame.isIconifiable () ? 1 : 0 ) + ( frame.isMaximizable () ? 1 : 0 ) + ( frame.isClosable () ? 1 : 0 );
         final JPanel buttonsPanel = new JPanel ( new GridLayout ( 1, buttons ) );
         buttonsPanel.setOpaque ( false );
         if ( frame.isIconifiable () )
@@ -125,82 +136,22 @@ public class WebInternalFrameTitlePane extends BasicInternalFrameTitlePane
         {
             buttonsPanel.add ( closeButton );
         }
-        add ( new BorderPanel ( buttonsPanel, 0, 0, 0, 0 ), BorderLayout.EAST );
+        add ( buttonsPanel, BorderLayout.EAST );
     }
 
     @Override
     protected void createButtons ()
     {
-        iconButton = new WebButton ()
-        {
-            {
-                setEnabled ( frame.isIconifiable () );
-                setRolloverDarkBorderOnly ( false );
-                setShadeWidth ( 0 );
-                setRound ( StyleConstants.bigRound );
-                setInnerShadeWidth ( 2 );
-                setFocusable ( false );
-                if ( isFrameTitle () )
-                {
-                    setDrawRight ( false );
-                    setDrawRightLine ( true );
-                    setDrawTop ( false );
-                    setDrawTopLine ( true );
-                }
-                else
-                {
-                    setDrawLeft ( false );
-                    setDrawLeftLine ( true );
-                    setDrawRight ( false );
-                    setDrawRightLine ( true );
-                }
-                setBorder ( BorderFactory.createEmptyBorder ( 4, 7, 4, 6 ) );
-            }
-        };
+        iconButton = new WebButton ( StyleId.internalframeMinimizeButton.at ( frame ) );
+        iconButton.setEnabled ( frame.isIconifiable () );
         iconButton.addActionListener ( iconifyAction );
 
-        maxButton = new WebButton ()
-        {
-            {
-                setEnabled ( frame.isMaximizable () );
-                setRolloverDarkBorderOnly ( false );
-                setShadeWidth ( 0 );
-                setRound ( StyleConstants.bigRound );
-                setInnerShadeWidth ( 2 );
-                setFocusable ( false );
-                setDrawLeft ( false );
-                setDrawLeftLine ( false );
-                setDrawRight ( false );
-                setDrawRightLine ( true );
-                setBorder ( BorderFactory.createEmptyBorder ( 4, 6, 4, 6 ) );
-            }
-        };
+        maxButton = new WebButton ( StyleId.internalframeMaximizeButton.at ( frame ) );
+        maxButton.setEnabled ( frame.isMaximizable () );
         maxButton.addActionListener ( maximizeAction );
 
-        closeButton = new WebButton ()
-        {
-            {
-                setEnabled ( frame.isClosable () );
-                setRolloverDarkBorderOnly ( false );
-                setShadeWidth ( 0 );
-                setRound ( StyleConstants.bigRound );
-                setInnerShadeWidth ( 2 );
-                setFocusable ( false );
-                if ( isFrameTitle () )
-                {
-                    setDrawLeft ( false );
-                    setDrawLeftLine ( false );
-                    setDrawBottom ( false );
-                    setDrawBottomLine ( true );
-                }
-                else
-                {
-                    setDrawLeft ( false );
-                    setDrawLeftLine ( false );
-                }
-                setBorder ( BorderFactory.createEmptyBorder ( 4, 6, 4, 7 ) );
-            }
-        };
+        closeButton = new WebButton ( StyleId.internalframeCloseButton.at ( frame ) );
+        closeButton.setEnabled ( frame.isClosable () );
         closeButton.addActionListener ( closeAction );
 
         setButtonIcons ();
@@ -210,7 +161,7 @@ public class WebInternalFrameTitlePane extends BasicInternalFrameTitlePane
     protected void setButtonIcons ()
     {
         iconButton.setIcon ( frame.isIcon () ? restoreIcon : iconifyIcon );
-        maxButton.setIcon ( frame.isIcon () ? maximizeIcon : ( frame.isMaximum () ? restoreIcon : maximizeIcon ) );
+        maxButton.setIcon ( frame.isIcon () ? maximizeIcon : frame.isMaximum () ? restoreIcon : maximizeIcon );
         closeButton.setIcon ( closeIcon );
     }
 }

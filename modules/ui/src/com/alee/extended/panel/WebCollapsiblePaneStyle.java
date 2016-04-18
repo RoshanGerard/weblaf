@@ -24,7 +24,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * User: mgarin Date: 29.01.13 Time: 15:44
+ * @author Mikle Garin
  */
 
 public final class WebCollapsiblePaneStyle
@@ -62,12 +62,12 @@ public final class WebCollapsiblePaneStyle
     /**
      * State icon position in title pane.
      */
-    public static int stateIconPostion = SwingConstants.RIGHT;
+    public static int stateIconPosition = SwingConstants.RIGHT;
 
     /**
      * Title pane position in collapsible pane.
      */
-    public static int titlePanePostion = SwingConstants.TOP;
+    public static int titlePanePosition = SwingConstants.TOP;
 
     /**
      * Content margin.

@@ -23,10 +23,8 @@ import com.alee.utils.text.SimpleTextProvider;
 import com.alee.utils.text.TextProvider;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.StringTokenizer;
 
 /**
  * This class provides a set of utilities to work with various text usage cases.
@@ -39,6 +37,7 @@ public final class TextUtils
     /**
      * Constants for time calculations.
      */
+    private static final int msInWeek = 604800000;
     private static final int msInDay = 86400000;
     private static final int msInHour = 3600000;
     private static final int msInMinute = 60000;
@@ -70,6 +69,78 @@ public final class TextUtils
      * Default ID suffix.
      */
     private static final String defaultIdSuffix = "ID";
+
+    /**
+     * Returns message formatted with common string representations of the provided objects.
+     *
+     * @param text    message to format
+     * @param objects objects to use for message formatting
+     * @return message formatted with common string representations of the provided objects
+     */
+    public static String format ( final String text, final Object... objects )
+    {
+        final Object[] data = new Object[ objects != null ? objects.length : 0 ];
+        if ( objects != null )
+        {
+            for ( int i = 0; i < objects.length; i++ )
+            {
+                data[ i ] = toString ( objects[ i ] );
+            }
+        }
+        return String.format ( text, data );
+    }
+
+    /**
+     * Returns common string representation of the specified object.
+     * Unlike the common {@link Object#toString()} method it will not throw {@link java.lang.NullPointerException} and returns slightly
+     * different results depending on the object class type. For most it will still return the same result as {@link Object#toString()}.
+     *
+     * @param object object to return common string representation for
+     * @return common string representation of the specified object
+     */
+    public static String toString ( final Object object )
+    {
+        if ( object == null )
+        {
+            return "null";
+        }
+        else if ( object instanceof String )
+        {
+            return ( String ) object;
+        }
+        else
+        {
+            return object.toString ();
+        }
+    }
+
+    /**
+     * Returns list of strings based on single pattern parsed using different number values in range.
+     *
+     * @param pattern values pattern
+     * @param from    range start
+     * @param to      range end
+     * @return list of strings based on single pattern parsed using different number values in range
+     */
+    public static List<String> numbered ( final String pattern, final int from, final int to )
+    {
+        final List<String> list = new ArrayList<String> ( Math.abs ( from - to ) );
+        if ( from < to )
+        {
+            for ( int i = from; i <= to; i++ )
+            {
+                list.add ( format ( pattern, i ) );
+            }
+        }
+        else
+        {
+            for ( int i = from; i >= to; i-- )
+            {
+                list.add ( format ( pattern, i ) );
+            }
+        }
+        return list;
+    }
 
     /**
      * Returns text with all line breaks removed.
@@ -195,18 +266,6 @@ public final class TextUtils
     }
 
     /**
-     * Returns a list of text parts splitted using specified separator.
-     *
-     * @param text      text to split
-     * @param separator text parts separator
-     * @return list of splitted parts
-     */
-    public static List<String> split ( final String text, final String separator )
-    {
-        return Arrays.asList ( text.split ( separator ) );
-    }
-
-    /**
      * Returns point extracted from text.
      *
      * @param text text to extract point from
@@ -235,7 +294,7 @@ public final class TextUtils
      * This method works faster than simple replaceAll("\\p{Cntrl}", "").
      *
      * @param text text to modify
-     * @return text without conytol symbols
+     * @return text without control symbols
      */
     public static String removeControlSymbols ( final String text )
     {
@@ -259,7 +318,7 @@ public final class TextUtils
      * Returns shortened text.
      *
      * @param text      text to shorten
-     * @param maxLength maximum shortened text lenght
+     * @param maxLength maximum shortened text length
      * @param addDots   add dots at the end of the text when shortened
      * @return shortened text
      */
@@ -273,7 +332,7 @@ public final class TextUtils
      * Returns shortened text.
      *
      * @param text      text to shorten
-     * @param maxLength maximum shortened text lenght
+     * @param maxLength maximum shortened text length
      * @param addDots   add dots at the end of the text when shortened
      * @return shortened text
      */
@@ -284,11 +343,11 @@ public final class TextUtils
     }
 
     /**
-     * Returns a list of text parts splitted using specified separator.
+     * Returns a list of text parts split using specified separator.
      *
      * @param string    text to split
      * @param separator text parts separator
-     * @return list of splitted parts
+     * @return list of split parts
      */
     public static List<String> stringToList ( final String string, final String separator )
     {
@@ -305,11 +364,11 @@ public final class TextUtils
     }
 
     /**
-     * Returns a list of integer parts splitted using specified separator.
+     * Returns a list of integer parts split using specified separator.
      *
      * @param string    text to split
      * @param separator text parts separator
-     * @return list of splitted parts
+     * @return list of split parts
      */
     public static List<Integer> stringToIntList ( final String string, final String separator )
     {
@@ -320,6 +379,31 @@ public final class TextUtils
             for ( final String s : stringList )
             {
                 intList.add ( Integer.parseInt ( s ) );
+            }
+            return intList;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a list of float parts split using specified separator.
+     *
+     * @param string    text to split
+     * @param separator text parts separator
+     * @return list of split parts
+     */
+    public static List<Float> stringToFloatList ( final String string, final String separator )
+    {
+        final List<String> stringList = stringToList ( string, separator );
+        if ( stringList != null )
+        {
+            final List<Float> intList = new ArrayList<Float> ( stringList.size () );
+            for ( final String s : stringList )
+            {
+                intList.add ( Float.parseFloat ( s ) );
             }
             return intList;
         }
@@ -378,7 +462,7 @@ public final class TextUtils
                     {
                         stringBuilder.append ( separator );
                     }
-                    stringBuilder.append ( textProvider.provide ( object ) );
+                    stringBuilder.append ( textProvider.getText ( object ) );
                     hasPreviouslyAccepted = true;
                 }
             }
@@ -505,17 +589,17 @@ public final class TextUtils
     }
 
     /**
-     * Replaces all occurences of str found in the specified text with provided text.
+     * Replaces all occurrences of str found in the specified text with provided text.
      *
-     * @param text       text to replace string occurences in
-     * @param ignoreCase whether should ignore case while searching for occurences or not
+     * @param text       text to replace string occurrences in
+     * @param ignoreCase whether should ignore case while searching for occurrences or not
      * @param str        text to replace
      * @param provider   text replacement
-     * @return text with replaced occurences of the specified str
+     * @return text with replaced occurrences of the specified str
      */
     public static String replaceAll ( final String text, final boolean ignoreCase, final String str, final TextProvider<String> provider )
     {
-        final String exp = ignoreCase ? str.toLowerCase () : str;
+        final String exp = ignoreCase ? str.toLowerCase ( Locale.ROOT ) : str;
         int match = 0;
         int prev = 0;
         final StringBuilder builder = new StringBuilder ( text.length () );
@@ -539,7 +623,7 @@ public final class TextUtils
                 final int start = i - exp.length () + 1;
                 final String part = text.substring ( start, start + exp.length () );
                 builder.append ( text.substring ( prev, start ) );
-                builder.append ( provider.provide ( part ) );
+                builder.append ( provider.getText ( part ) );
                 prev = start + exp.length ();
                 match = 0;
             }
@@ -631,6 +715,7 @@ public final class TextUtils
      *
      * @param delay string delay
      * @return delay retrieved from string
+     * @throws com.alee.utils.text.DelayFormatException when delay cannot be parsed
      */
     public static long parseDelay ( final String delay ) throws DelayFormatException
     {
@@ -640,31 +725,42 @@ public final class TextUtils
             final String[] parts = delay.split ( " " );
             for ( final String part : parts )
             {
-                for ( int i = 0; i < part.length (); i++ )
+                if ( !TextUtils.isEmpty ( part ) )
                 {
-                    if ( !Character.isDigit ( part.charAt ( i ) ) )
+                    for ( int i = 0; i < part.length (); i++ )
                     {
-                        final int time = Integer.parseInt ( part.substring ( 0, i ) );
-                        final PartType type = PartType.valueOf ( part.substring ( i ) );
-                        switch ( type )
+                        if ( !Character.isDigit ( part.charAt ( i ) ) )
                         {
-                            case d:
-                                summ += time * msInDay;
-                                break;
-                            case h:
-                                summ += time * msInHour;
-                                break;
-                            case m:
-                                summ += time * msInMinute;
-                                break;
-                            case s:
-                                summ += time * msInSecond;
-                                break;
-                            case ms:
-                                summ += time;
-                                break;
+                            final int time = Integer.parseInt ( part.substring ( 0, i ) );
+                            final PartType type = PartType.valueOf ( part.substring ( i ) );
+                            switch ( type )
+                            {
+                                case w:
+                                    summ += time * msInWeek;
+                                    break;
+
+                                case d:
+                                    summ += time * msInDay;
+                                    break;
+
+                                case h:
+                                    summ += time * msInHour;
+                                    break;
+
+                                case m:
+                                    summ += time * msInMinute;
+                                    break;
+
+                                case s:
+                                    summ += time * msInSecond;
+                                    break;
+
+                                case ms:
+                                    summ += time;
+                                    break;
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
@@ -678,6 +774,7 @@ public final class TextUtils
 
     /**
      * Returns delay string representation.
+     * Delay cannot be less or equal to zero.
      *
      * @param delay delay to process
      * @return delay string representation
@@ -690,6 +787,9 @@ public final class TextUtils
         }
 
         long time = delay;
+
+        final long w = time / msInWeek;
+        time = time - w * msInWeek;
 
         final long d = time / msInDay;
         time = time - d * msInDay;
@@ -705,7 +805,8 @@ public final class TextUtils
 
         final long ms = time;
 
-        final String stringDelay = ( d > 0 ? d + "d " : "" ) +
+        final String stringDelay = ( w > 0 ? w + "w " : "" ) +
+                ( d > 0 ? d + "d " : "" ) +
                 ( h > 0 ? h + "h " : "" ) +
                 ( m > 0 ? m + "m " : "" ) +
                 ( s > 0 ? s + "s " : "" ) +
@@ -719,6 +820,6 @@ public final class TextUtils
      */
     protected static enum PartType
     {
-        d, h, m, s, ms
+        w, d, h, m, s, ms
     }
 }

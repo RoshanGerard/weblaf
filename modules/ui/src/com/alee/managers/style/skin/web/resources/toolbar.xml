@@ -1,0 +1,41 @@
+<skin>
+
+    <!-- com.alee.laf.toolbar.WebToolBar -->
+
+    <!-- Toolbar -->
+    <style type="toolbar" padding="2">
+        <component>
+            <orientation>0</orientation>
+            <floatable>true</floatable>
+        </component>
+        <painter class="WebToolBarPainter">
+            <spacing>2</spacing>
+            <decorations>
+                <decoration round="6">
+                    <BasicShade type="outer" width="2" />
+                    <LineBorder color="170,170,170" />
+                    <GradientBackground type="linear" from="0,0.5" to="0,1">
+                        <color>white</color>
+                        <color>229,233,238</color>
+                    </GradientBackground>
+                </decoration>
+                <decoration states="floating">
+                    <sides>0,0,0,0</sides>
+                </decoration>
+            </decorations>
+        </painter>
+    </style>
+
+    <!-- Attached toolbar -->
+    <style type="toolbar" id="attached">
+        <painter class="WebToolBarPainter">
+            <decorations>
+                <decoration round="6">
+                    <sides>0,0,1,0</sides>
+                    <BasicShade type="outer" width="0" />
+                </decoration>
+            </decorations>
+        </painter>
+    </style>
+
+</skin>

@@ -17,10 +17,14 @@
 
 package com.alee.extended.tree;
 
+import com.alee.api.IconSupport;
 import com.alee.laf.tree.UniqueNode;
+import com.alee.utils.ImageUtils;
 
 import javax.swing.*;
 import java.io.Serializable;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Custom UniqueNode for WebAsyncTree.
@@ -29,8 +33,18 @@ import java.io.Serializable;
  * @author Mikle Garin
  */
 
-public abstract class AsyncUniqueNode extends UniqueNode implements Serializable
+public abstract class AsyncUniqueNode extends UniqueNode implements IconSupport, Serializable
 {
+    /**
+     * Special failed state icon.
+     */
+    protected static final ImageIcon failedStateIcon = new ImageIcon ( AsyncUniqueNode.class.getResource ( "icons/failed.png" ) );
+
+    /**
+     * User failed icons cache.
+     */
+    protected static final Map<ImageIcon, ImageIcon> failedStateIcons = new WeakHashMap<ImageIcon, ImageIcon> ( 5 );
+
     /**
      * Special separate loader icon for each tree node.
      * This is required to provide separate image observers to optimize tree repaints around the animated icon.
@@ -43,7 +57,7 @@ public abstract class AsyncUniqueNode extends UniqueNode implements Serializable
     protected AsyncNodeState state = AsyncNodeState.waiting;
 
     /**
-     * Childs load failure cause.
+     * Children load failure cause.
      */
     protected Throwable failureCause = null;
 
@@ -97,9 +111,9 @@ public abstract class AsyncUniqueNode extends UniqueNode implements Serializable
     }
 
     /**
-     * Returns whether node childs are being loaded or not.
+     * Returns whether node children are being loaded or not.
      *
-     * @return true if node childs are being loaded, false otherwise
+     * @return true if node children are being loaded, false otherwise
      */
     public boolean isLoading ()
     {
@@ -107,9 +121,9 @@ public abstract class AsyncUniqueNode extends UniqueNode implements Serializable
     }
 
     /**
-     * Returns whether node childs are loaded or not.
+     * Returns whether node children are loaded or not.
      *
-     * @return true if node childs are loaded, false otherwise
+     * @return true if node children are loaded, false otherwise
      */
     public boolean isLoaded ()
     {
@@ -117,9 +131,9 @@ public abstract class AsyncUniqueNode extends UniqueNode implements Serializable
     }
 
     /**
-     * Returns whether node childs load failed or not.
+     * Returns whether node children load failed or not.
      *
-     * @return true if node childs load failed, false otherwise
+     * @return true if node children load failed, false otherwise
      */
     public boolean isFailed ()
     {
@@ -138,9 +152,9 @@ public abstract class AsyncUniqueNode extends UniqueNode implements Serializable
     }
 
     /**
-     * Returns childs load failure cause.
+     * Returns children load failure cause.
      *
-     * @return childs load failure cause
+     * @return children load failure cause
      */
     public Throwable getFailureCause ()
     {
@@ -148,9 +162,9 @@ public abstract class AsyncUniqueNode extends UniqueNode implements Serializable
     }
 
     /**
-     * Sets childs load failure cause.
+     * Sets children load failure cause.
      *
-     * @param failureCause childs load failure cause
+     * @param failureCause children load failure cause
      */
     public void setFailureCause ( final Throwable failureCause )
     {
@@ -182,21 +196,38 @@ public abstract class AsyncUniqueNode extends UniqueNode implements Serializable
                 new ImageIcon ( AsyncUniqueNode.class.getResource ( "icons/" + WebAsyncTreeStyle.loaderIconType + ".gif" ) );
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public Icon getIcon ()
+    {
+        return isLoading () ? getLoaderIcon () : null;
+    }
+
     @Override
     public AsyncUniqueNode getParent ()
     {
         return ( AsyncUniqueNode ) super.getParent ();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public AsyncUniqueNode getChildAt ( final int index )
     {
         return ( AsyncUniqueNode ) super.getChildAt ( index );
+    }
+
+    /**
+     * Returns user failed state icon.
+     *
+     * @param icon base icon
+     * @return user failed state icon
+     */
+    public static ImageIcon getFailedStateIcon ( final ImageIcon icon )
+    {
+        ImageIcon failedIcon = failedStateIcons.get ( icon );
+        if ( failedIcon == null )
+        {
+            failedIcon = ImageUtils.mergeIcons ( icon, failedStateIcon );
+            failedStateIcons.put ( icon, failedIcon );
+        }
+        return failedIcon;
     }
 }

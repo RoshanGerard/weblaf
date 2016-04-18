@@ -21,11 +21,12 @@ import com.alee.laf.WebFonts;
 import com.alee.laf.label.WebLabel;
 import com.alee.managers.hotkey.HotkeyManager;
 import com.alee.managers.language.data.TooltipWay;
+import com.alee.managers.style.StyleId;
 import com.alee.utils.CollectionUtils;
 import com.alee.utils.GraphicsUtils;
 import com.alee.utils.SwingUtils;
 import com.alee.utils.TextUtils;
-import com.alee.utils.laf.ShapeProvider;
+import com.alee.managers.style.ShapeProvider;
 import com.alee.utils.swing.AncestorAdapter;
 import com.alee.utils.swing.FadeStateType;
 import com.alee.utils.swing.WebTimer;
@@ -49,6 +50,11 @@ import java.util.List;
 
 public class WebCustomTooltip extends JComponent implements ShapeProvider
 {
+    /**
+     * todo 1. Make this a custom styleable component
+     * todo 2. Move all painting into painter
+     */
+
     /**
      * Tooltip constants.
      */
@@ -81,7 +87,7 @@ public class WebCustomTooltip extends JComponent implements ShapeProvider
     private Color topBgColor = WebCustomTooltipStyle.topBgColor;
     private Color bottomBgColor = WebCustomTooltipStyle.bottomBgColor;
     private Color textColor = WebCustomTooltipStyle.textColor;
-    private float trasparency = WebCustomTooltipStyle.trasparency;
+    private float transparency = WebCustomTooltipStyle.transparency;
 
     /**
      * Tooltip listeners.
@@ -96,7 +102,7 @@ public class WebCustomTooltip extends JComponent implements ShapeProvider
     /**
      * Tooltip variables.
      */
-    private final HotkeyTipLabel hotkey;
+    private final WebLabel hotkey;
     private int cornerPeak = 0;
 
     /**
@@ -186,7 +192,7 @@ public class WebCustomTooltip extends JComponent implements ShapeProvider
         this.displayWay = tooltipWay;
 
         // Tooltip hotkey preview component
-        hotkey = new HotkeyTipLabel ();
+        hotkey = new WebLabel ( StyleId.customtooltipHotkeyLabel );
         hotkey.setFont ( WebFonts.getSystemAcceleratorFont () );
 
         // Components placement on tooltip
@@ -316,7 +322,7 @@ public class WebCustomTooltip extends JComponent implements ShapeProvider
                 final String hotkeyText = HotkeyManager.getComponentHotkeysString ( ( JComponent ) c );
                 if ( !TextUtils.isEmpty ( hotkeyText ) )
                 {
-                    // Updatings hotkey
+                    // Updating hotkey
                     hotkey.setText ( hotkeyText );
 
                     // Adding or re-adding hotkey label to tooltip
@@ -1002,14 +1008,14 @@ public class WebCustomTooltip extends JComponent implements ShapeProvider
      * Tooltip background transparency
      */
 
-    public float getTrasparency ()
+    public float getTransparency ()
     {
-        return trasparency;
+        return transparency;
     }
 
-    public void setTrasparency ( final float trasparency )
+    public void setTransparency ( final float transparency )
     {
-        this.trasparency = trasparency;
+        this.transparency = transparency;
     }
 
     /**
@@ -1041,9 +1047,9 @@ public class WebCustomTooltip extends JComponent implements ShapeProvider
             GraphicsUtils.setupAlphaComposite ( g2d, fade );
         }
         Composite oc = null;
-        if ( trasparency < 1f )
+        if ( transparency < 1f )
         {
-            oc = GraphicsUtils.setupAlphaComposite ( g2d, trasparency );
+            oc = GraphicsUtils.setupAlphaComposite ( g2d, transparency );
         }
 
         // Tooltip settings
@@ -1204,8 +1210,7 @@ public class WebCustomTooltip extends JComponent implements ShapeProvider
 
     public static WebLabel createDefaultComponent ( final Icon icon, final String tooltip )
     {
-        final WebLabel label = new WebLabel ( tooltip, icon );
-        label.setStyleId ( "custom-tooltip-label" );
+        final WebLabel label = new WebLabel ( StyleId.customtooltipLabel, tooltip, icon );
         label.setFont ( WebFonts.getSystemTooltipFont () );
         return label;
     }

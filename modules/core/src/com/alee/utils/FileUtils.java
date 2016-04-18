@@ -27,7 +27,8 @@ import com.alee.utils.file.FileDescription;
 import com.alee.utils.file.FileDownloadListener;
 import com.alee.utils.file.SystemFileListener;
 import com.alee.utils.filefilter.AbstractFileFilter;
-import com.alee.utils.filefilter.CustomFileFilter;
+import com.alee.utils.filefilter.IOFileFilterAdapter;
+import com.alee.utils.filefilter.SwingFileFilterAdapter;
 import com.alee.utils.swing.WebTimer;
 
 import javax.swing.*;
@@ -44,13 +45,14 @@ import java.security.MessageDigest;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class provides a set of utilities to work with files, file names and their extensions.
  * <p/>
  * Note that methods which request information about files from the system has their own caches to improve performance.
  * If you will need to clear that cache simply call the corresponding clearCache method, for example:
- * For method "isHidden" you will need to call "clearIsHiddenCache" and all cached values will be resetted.
+ * For method "isHidden" you will need to call "clearIsHiddenCache" and all cached values will be reset.
  *
  * @author Mikle Garin
  */
@@ -120,57 +122,57 @@ public final class FileUtils
     /**
      * Cache for "isDrive" method result.
      */
-    private static final Map<String, Boolean> isDriveCache = new HashMap<String, Boolean> ();
+    private static final Map<String, Boolean> isDriveCache = new ConcurrentHashMap<String, Boolean>();
 
     /**
      * Cache for "isComputer" method result.
      */
-    private static final Map<String, Boolean> isComputerCache = new HashMap<String, Boolean> ();
+    private static final Map<String, Boolean> isComputerCache = new ConcurrentHashMap<String, Boolean> ();
 
     /**
      * Cache for "isCdDrive" method result.
      */
-    private static final Map<String, Boolean> isCdDriveCache = new HashMap<String, Boolean> ();
+    private static final Map<String, Boolean> isCdDriveCache = new ConcurrentHashMap<String, Boolean> ();
 
     /**
      * Cache for "isFile" method result.
      */
-    private static final Map<String, Boolean> isFileCache = new HashMap<String, Boolean> ();
+    private static final Map<String, Boolean> isFileCache = new ConcurrentHashMap<String, Boolean> ();
 
     /**
      * Cache for "isDirectory" method result.
      */
-    private static final Map<String, Boolean> isDirectoryCache = new HashMap<String, Boolean> ();
+    private static final Map<String, Boolean> isDirectoryCache = new ConcurrentHashMap<String, Boolean> ();
 
     /**
      * Cache for "isHidden" method result.
      */
-    private static final Map<String, Boolean> isHiddenCache = new HashMap<String, Boolean> ();
+    private static final Map<String, Boolean> isHiddenCache = new ConcurrentHashMap<String, Boolean> ();
 
     /**
      * Cache for "getDisplayFileName" method result.
      */
-    private static final Map<String, String> displayFileNameCache = new HashMap<String, String> ();
+    private static final Map<String, String> displayFileNameCache = new ConcurrentHashMap<String, String> ();
 
     /**
      * Cache for "getFileDescription" method result.
      */
-    private static final Map<String, FileDescription> fileDescriptionCache = new HashMap<String, FileDescription> ();
+    private static final Map<String, FileDescription> fileDescriptionCache = new ConcurrentHashMap<String, FileDescription> ();
 
     /**
      * Cache for "getFileTypeDescription" method result.
      */
-    private static final Map<String, String> fileTypeDescriptionCache = new HashMap<String, String> ();
+    private static final Map<String, String> fileTypeDescriptionCache = new ConcurrentHashMap<String, String> ();
 
     /**
      * Cache for "getDisplayFileCreationDate" method result.
      */
-    private static final Map<String, String> displayFileCreationDateCache = new HashMap<String, String> ();
+    private static final Map<String, String> displayFileCreationDateCache = new ConcurrentHashMap<String, String> ();
 
     /**
      * Cache for "getDisplayFileModificationDate" method result.
      */
-    private static final Map<String, String> displayFileModificationDateCache = new HashMap<String, String> ();
+    private static final Map<String, String> displayFileModificationDateCache = new ConcurrentHashMap<String, String> ();
 
     /**
      * File extension icons cache lock.
@@ -180,12 +182,12 @@ public final class FileUtils
     /**
      * File extension icons cache.
      */
-    private static final Map<String, ImageIcon> extensionIconsCache = new HashMap<String, ImageIcon> ();
+    private static final Map<String, ImageIcon> extensionIconsCache = new ConcurrentHashMap<String, ImageIcon> ();
 
     /**
      * Resource icons cache.
      */
-    private static final Map<String, ImageIcon> resourceIconsCache = new HashMap<String, ImageIcon> ();
+    private static final Map<String, ImageIcon> resourceIconsCache = new ConcurrentHashMap<String, ImageIcon> ();
 
     /**
      * Default file tracking updates delay.
@@ -375,7 +377,11 @@ public final class FileUtils
      */
     public static File[] getSystemRoots ()
     {
-        final File[] roots = fsv.getRoots ();
+        final File[] roots;
+        synchronized (fsv)
+        {
+            roots = fsv.getRoots ();
+        }
         if ( roots != null && roots.length > 0 )
         {
             return roots;
@@ -637,7 +643,7 @@ public final class FileUtils
      * @param file  file to look for
      * @return true if list of files or file paths contains the specified file, false otherwise
      */
-    public static boolean containtsFile ( final List files, final File file )
+    public static boolean containsFile ( final List files, final File file )
     {
         for ( final Object f : files )
         {
@@ -764,11 +770,11 @@ public final class FileUtils
     }
 
     /**
-     * Returns whether the specified child file is one of parent file childs or not.
+     * Returns whether the specified child file is one of parent file children or not.
      *
      * @param parent parent file
      * @param child  child file
-     * @return true if the specified child file is one of parent file childs, false otherwise
+     * @return true if the specified child file is one of parent file children, false otherwise
      */
     public static boolean isParent ( final File parent, File child )
     {
@@ -1133,24 +1139,15 @@ public final class FileUtils
      */
     public static AbstractFileFilter transformFileFilter ( final FileFilter fileFilter )
     {
-        final AbstractFileFilter filter;
         if ( fileFilter instanceof AbstractFileFilter )
         {
-            filter = ( AbstractFileFilter ) fileFilter;
+            return ( AbstractFileFilter ) fileFilter;
         }
         else
         {
-            filter = new CustomFileFilter ( GlobalConstants.ALL_FILES_FILTER.getIcon (),
-                    LanguageManager.get ( "weblaf.file.filter.custom" ) )
-            {
-                @Override
-                public boolean accept ( final File file )
-                {
-                    return fileFilter == null || fileFilter.accept ( file );
-                }
-            };
+            return new IOFileFilterAdapter ( fileFilter, GlobalConstants.ALL_FILES_FILTER.getIcon (),
+                    LanguageManager.get ( "weblaf.file.filter.custom" ) );
         }
-        return filter;
     }
 
     /**
@@ -1161,23 +1158,26 @@ public final class FileUtils
      */
     public static AbstractFileFilter transformFileFilter ( final javax.swing.filechooser.FileFilter fileFilter )
     {
-        final AbstractFileFilter filter;
         if ( fileFilter instanceof AbstractFileFilter )
         {
-            filter = ( AbstractFileFilter ) fileFilter;
+            return ( AbstractFileFilter ) fileFilter;
         }
         else
         {
-            filter = new CustomFileFilter ( GlobalConstants.ALL_FILES_FILTER.getIcon (), fileFilter.getDescription () )
-            {
-                @Override
-                public boolean accept ( final File file )
-                {
-                    return fileFilter == null || fileFilter.accept ( file );
-                }
-            };
+            return new SwingFileFilterAdapter ( fileFilter, GlobalConstants.ALL_FILES_FILTER.getIcon () );
         }
-        return filter;
+    }
+
+    /**
+     * Returns actual Swing file filter from the specified filter.
+     *
+     * @param fileFilter WebLaF file filter
+     * @return actual Swing file filter from the specified filter
+     */
+    public static javax.swing.filechooser.FileFilter getSwingFileFilter ( final AbstractFileFilter fileFilter )
+    {
+        return fileFilter != null && fileFilter instanceof SwingFileFilterAdapter ?
+                ( ( SwingFileFilterAdapter ) fileFilter ).getFileFilter () : fileFilter;
     }
 
     /**
@@ -1270,7 +1270,7 @@ public final class FileUtils
      */
     public static String getFileSizeString ( final long size, final int digits )
     {
-        final DecimalFormat df = new DecimalFormat ( digits == 0 ? "#" : "#." + getDigits ( digits ) );
+        final DecimalFormat df = new DecimalFormat ( digits > 0 ? "#." + getDigits ( digits ) : "#" );
         if ( size < KB )
         {
             return df.format ( size ) + " " + LanguageManager.get ( "weblaf.file.size.b" );
@@ -1356,13 +1356,13 @@ public final class FileUtils
      */
     public static boolean copyDirectory ( final File srcDir, final File dstDir, final boolean stopOnFail )
     {
-        // todo Actually ignore exceptions aswell if stopOnFail = false
+        // todo Actually ignore exceptions as well if stopOnFail = false
         if ( srcDir.exists () && srcDir.isDirectory () )
         {
             // Ensure destination directory exists and perform copy
             if ( ensureDirectoryExists ( dstDir ) )
             {
-                // Copying all subdirectories and subfiles
+                // Copying all subdirectories and sub-files
                 boolean success = true;
                 for ( final File file : srcDir.listFiles () )
                 {
@@ -1694,8 +1694,9 @@ public final class FileUtils
      * Writes text to the specified file overwriting any content inside the file.
      * If file or even its directory doesn't exist - they will be created.
      *
-     * @param text text to write
-     * @param file file to write text into
+     * @param text     text to write
+     * @param file     file to write text into
+     * @param encoding file encoding
      */
     public static void writeStringToFile ( final String text, final File file, final String encoding )
     {
@@ -1738,9 +1739,9 @@ public final class FileUtils
      * @param dir path of directory to process
      * @return list of file paths
      */
-    public static List<String> getSubpaths ( final String dir )
+    public static List<String> getSubPaths ( final String dir )
     {
-        return getSubpaths ( new File ( dir ) );
+        return getSubPaths ( new File ( dir ) );
     }
 
     /**
@@ -1749,9 +1750,9 @@ public final class FileUtils
      * @param dir directory to process
      * @return list of file paths
      */
-    public static List<String> getSubpaths ( final File dir )
+    public static List<String> getSubPaths ( final File dir )
     {
-        return getSubpaths ( dir, "" );
+        return getSubPaths ( dir, "" );
     }
 
     /**
@@ -1761,9 +1762,9 @@ public final class FileUtils
      * @param path path to current position
      * @return list of file paths
      */
-    public static List<String> getSubpaths ( final File dir, final String path )
+    public static List<String> getSubPaths ( final File dir, final String path )
     {
-        return getSubpaths ( dir, path, new ArrayList<String> () );
+        return getSubPaths ( dir, path, new ArrayList<String> () );
     }
 
     /**
@@ -1774,7 +1775,7 @@ public final class FileUtils
      * @param paths list of collected paths
      * @return list of file paths
      */
-    public static List<String> getSubpaths ( final File dir, final String path, final List<String> paths )
+    public static List<String> getSubPaths ( final File dir, final String path, final List<String> paths )
     {
         for ( final File file : dir.listFiles () )
         {
@@ -1784,7 +1785,7 @@ public final class FileUtils
             }
             else if ( file.isDirectory () )
             {
-                getSubpaths ( file, path + file.getName () + File.separator, paths );
+                getSubPaths ( file, path + file.getName () + File.separator, paths );
             }
         }
         return paths;
@@ -2016,7 +2017,7 @@ public final class FileUtils
             // Creating URLConnection
             final URLConnection uc = ProxyManager.getURLConnection ( url );
 
-            // todo Tihs size is limited to maximum of 2GB, should retrieve long instead
+            // todo This size is limited to maximum of 2GB, should retrieve long instead
             // Retrieving file size
             return uc.getContentLength ();
         }
@@ -2214,6 +2215,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "isDrive" method for specified file path.
+     *
+     * @param absolutePath path to clear file isDrive mark cache for
      */
     public static void clearIsDriveCache ( final String absolutePath )
     {
@@ -2235,7 +2238,11 @@ public final class FileUtils
         }
         else
         {
-            final boolean isDrive = fsv.isDrive ( file );
+            final boolean isDrive;
+            synchronized (fsv)
+            {
+                isDrive = fsv.isDrive ( file );
+            }
             isDriveCache.put ( absolutePath, isDrive );
             return isDrive;
         }
@@ -2251,6 +2258,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "isComputer" method for specified file path.
+     *
+     * @param absolutePath path to clear file isComputer mark cache for
      */
     public static void clearIsComputerCache ( final String absolutePath )
     {
@@ -2272,7 +2281,11 @@ public final class FileUtils
         }
         else
         {
-            final boolean isComputer = fsv.isComputerNode ( file );
+            final boolean isComputer;
+            synchronized (fsv)
+            {
+                isComputer = fsv.isComputerNode ( file );
+            }
             isComputerCache.put ( absolutePath, isComputer );
             return isComputer;
         }
@@ -2288,6 +2301,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "isCdDrive" method for specified file path.
+     *
+     * @param absolutePath path to clear file isCdDrive mark cache for
      */
     public static void clearIsCdDriveCache ( final String absolutePath )
     {
@@ -2318,7 +2333,7 @@ public final class FileUtils
                 final String description;
                 if ( sysDes != null )
                 {
-                    description = sysDes.toLowerCase ();
+                    description = sysDes.toLowerCase ( Locale.ROOT );
                 }
                 else
                 {
@@ -2346,6 +2361,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "isFile" method for specified file path.
+     *
+     * @param absolutePath path to clear file isFile mark cache for
      */
     public static void clearIsFileCache ( final String absolutePath )
     {
@@ -2386,6 +2403,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "isDirectory" method for specified file path.
+     *
+     * @param absolutePath path to clear file isDirectory mark cache for
      */
     public static void clearIsDirectoryCache ( final String absolutePath )
     {
@@ -2426,6 +2445,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "isHidden" method for specified file path.
+     *
+     * @param absolutePath path to clear file hidden mark cache for
      */
     public static void clearIsHiddenCache ( final String absolutePath )
     {
@@ -2467,6 +2488,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "getFileDescription" method for specified file path.
+     *
+     * @param absolutePath path to clear file description cache
      */
     public static void clearFileDescriptionCache ( final String absolutePath )
     {
@@ -2504,6 +2527,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "getDisplayFileName" method for specified file path.
+     *
+     * @param absolutePath path path path to clear file display name cache for
      */
     public static void clearDisplayFileNameCache ( final String absolutePath )
     {
@@ -2525,7 +2550,11 @@ public final class FileUtils
         }
         else
         {
-            String name = fsv.getSystemDisplayName ( file );
+            String name;
+            synchronized (fsv)
+            {
+                name = fsv.getSystemDisplayName ( file );
+            }
             if ( name == null || name.trim ().equals ( "" ) )
             {
                 name = getFileTypeDescription ( file );
@@ -2545,6 +2574,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "getDisplayFileCreationDate" method for specified file path.
+     *
+     * @param absolutePath path path to clear file creation date cache for
      */
     public static void clearDisplayFileCreationDateCache ( final String absolutePath )
     {
@@ -2582,6 +2613,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "getDisplayFileModificationDate" method for specified file path.
+     *
+     * @param absolutePath path path to clear file modification date cache for
      */
     public static void clearDisplayFileModificationDateCache ( final String absolutePath )
     {
@@ -2619,6 +2652,8 @@ public final class FileUtils
 
     /**
      * Clears cache for "getFileTypeDescription" method for specified file path.
+     *
+     * @param absolutePath path to clear file type description cache for
      */
     public static void clearFileTypeDescriptionCache ( final String absolutePath )
     {
@@ -2646,7 +2681,11 @@ public final class FileUtils
             }
             else
             {
-                final String description = fsv.getSystemTypeDescription ( file );
+                final String description;
+                synchronized (fsv)
+                {
+                    description = fsv.getSystemTypeDescription ( file );
+                }
                 fileTypeDescriptionCache.put ( absolutePath, description );
                 return description;
             }
@@ -2713,7 +2752,7 @@ public final class FileUtils
         //        }
         //        else
         //        {
-        return getStandartFileIcon ( file, large );
+        return getStandardFileIcon ( file, large );
         //        }
     }
 
@@ -2724,19 +2763,20 @@ public final class FileUtils
      * @param large whether return large icon or not
      * @return either large or small file icon
      */
-    public static ImageIcon getStandartFileIcon ( final File file, final boolean large )
+    public static ImageIcon getStandardFileIcon ( final File file, final boolean large )
     {
-        return getStandartFileIcon ( file, large, true );
+        return getStandardFileIcon ( file, large, true );
     }
 
     /**
      * Returns either large or small file icon from a standard icons set.
      *
-     * @param file  file to process
-     * @param large whether return large icon or not
+     * @param file    file to process
+     * @param large   whether return large icon or not
+     * @param enabled whether enabled icon or not
      * @return either large or small file icon
      */
-    public static ImageIcon getStandartFileIcon ( final File file, final boolean large, final boolean enabled )
+    public static ImageIcon getStandardFileIcon ( final File file, final boolean large, final boolean enabled )
     {
         if ( file == null )
         {
@@ -2749,7 +2789,7 @@ public final class FileUtils
         String extension;
         if ( !isDirectory ( file ) )
         {
-            extension = getFileExtPart ( file.getName (), false ).trim ().toLowerCase ();
+            extension = getFileExtPart ( file.getName (), false ).trim ().toLowerCase ( Locale.ROOT );
             if ( extension.trim ().equals ( "" ) )
             {
                 extension = file.getAbsolutePath ();
@@ -2774,7 +2814,7 @@ public final class FileUtils
 
         // Constructing icon cache key
         final float transparency = isHidden ( file ) ? 0.5f : 1f;
-        final String key = getStandartFileIconCacheKey ( extension, large, transparency, enabled );
+        final String key = getStandardFileIconCacheKey ( extension, large, transparency, enabled );
 
         // Retrieving icon
         final boolean contains;
@@ -2792,11 +2832,11 @@ public final class FileUtils
         else
         {
             // Retrieving file type icon
-            ImageIcon icon = getStandartFileIcon ( large, extension, transparency );
+            ImageIcon icon = getStandardFileIcon ( large, extension, transparency );
             if ( icon == null )
             {
                 // Simply use unknown file icon
-                icon = getStandartFileIcon ( large, "file", transparency );
+                icon = getStandardFileIcon ( large, "file", transparency );
             }
 
             // Caching the resulting icon
@@ -2813,7 +2853,7 @@ public final class FileUtils
                 // Cache enabled icon
                 synchronized ( extensionIconsCacheLock )
                 {
-                    extensionIconsCache.put ( getStandartFileIconCacheKey ( extension, large, transparency, true ), icon );
+                    extensionIconsCache.put ( getStandardFileIconCacheKey ( extension, large, transparency, true ), icon );
                 }
 
                 // Cache disabled icon
@@ -2829,15 +2869,15 @@ public final class FileUtils
     }
 
     /**
-     * Returns standart file icon cache key.
+     * Returns standard file icon cache key.
      *
      * @param extension    file extension or identifier
      * @param large        whether large icon used or not
      * @param transparency icon transparency
      * @param enabled      whether enabled icon or not
-     * @return standart file icon cache key
+     * @return standard file icon cache key
      */
-    private static String getStandartFileIconCacheKey ( final String extension, final boolean large, final float transparency,
+    private static String getStandardFileIconCacheKey ( final String extension, final boolean large, final float transparency,
                                                         final boolean enabled )
     {
         return extension + StyleConstants.SEPARATOR + large + StyleConstants.SEPARATOR + transparency + StyleConstants.SEPARATOR + enabled;
@@ -2851,7 +2891,7 @@ public final class FileUtils
      * @param transparency icon transparency
      * @return either large or small icon for the specified extension
      */
-    public static ImageIcon getStandartFileIcon ( final boolean large, final String extension, final float transparency )
+    public static ImageIcon getStandardFileIcon ( final boolean large, final String extension, final float transparency )
     {
         return getIconResource ( FileUtils.class, "icons/extensions/" + ( large ? "32" : "16" ) + "/file_extension_" + extension +
                 ".png", transparency );
@@ -2910,7 +2950,9 @@ public final class FileUtils
     /**
      * Starts tracking file for possible changes.
      *
+     * @param file     file to track
      * @param listener system file listener
+     * @return tracking timer
      */
     public static WebTimer trackFile ( final File file, final SystemFileListener listener )
     {
@@ -2920,8 +2962,10 @@ public final class FileUtils
     /**
      * Starts tracking file for possible changes.
      *
+     * @param file     file to track
      * @param listener system file listener
      * @param delay    delay between checks for changes
+     * @return tracking timer
      */
     public static WebTimer trackFile ( final File file, final SystemFileListener listener, final long delay )
     {

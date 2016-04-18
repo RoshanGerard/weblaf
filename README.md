@@ -1,3 +1,12 @@
+Important information!
+==========
+This is a temporary branch for styling improvements publishing.
+
+As soon as all changes in this branch are done and properly tested - it will be merged into the main repository. It contains major changes to the way in which all components are styled. It also removes all deprecated APIs from Web- components and UIs.
+
+All styling settings will now be provided through XML styling files. I will publish an extensive guide on how it can be used as soon as it is released. Don't worry, all previously existing features will still be available in one or another form.
+
+
 WebLaF
 ==========
 **WebLaf** is a Java Swing Look and Feel and extended components library for cross-platform applications.<br>
@@ -33,7 +42,7 @@ Advantages
 
 - Simple and stylish cross-platform default theme
 - Lots of useful custom Swing components
-- Fully stylable through settings, painters and custom skins
+- Fully styleable through settings, painters and custom skins
 - Language, settings, hotkey, tooltip and other custom managers
 - Various Swing and general utilities for many possible cases
 - Full support for RTL components orientation
@@ -149,9 +158,12 @@ public class UsageExample
 
 Roadmap
 ----------
-You can always check what fixes, features and improvements are coming by checking the milestones page:<br>
-https://github.com/mgarin/weblaf/issues/milestones
+You can always find out what fixes, features and improvements are coming on the milestones page:<br>
+https://github.com/mgarin/weblaf/milestones
 I am not updating them very frequently, but they actually represent features I want to focus on.
+
+ETA might not and usually will not be accurate.
+I really love this project and will not abandon it, but unfortunately I usually have a few other projects running which I have
 
 
 Updates

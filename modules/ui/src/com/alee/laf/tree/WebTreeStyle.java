@@ -35,9 +35,14 @@ public final class WebTreeStyle
     public static boolean autoExpandSelectedPath = false;
 
     /**
+     * Whether should select nodes on mouseover.
+     */
+    public static boolean mouseoverSelection = false;
+
+    /**
      * Show rollover node highlight.
      */
-    public static boolean highlightRolloverNode = true;
+    public static boolean mouseoverHighlight = true;
 
     /**
      * Draw tree structure lines.
@@ -72,7 +77,7 @@ public final class WebTreeStyle
     /**
      * Selector background color.
      */
-    public static Color selectorColor = new Color ( 0, 0, 255, 50 );
+    public static Color selectorColor = new Color ( 0, 0, 255, 25 );
 
     /**
      * Selector border color.

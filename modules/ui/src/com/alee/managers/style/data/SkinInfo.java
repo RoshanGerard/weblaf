@@ -17,8 +17,11 @@
 
 package com.alee.managers.style.data;
 
+import com.alee.api.TitleSupport;
 import com.alee.managers.log.Log;
-import com.alee.managers.style.SupportedComponent;
+import com.alee.managers.style.StyleException;
+import com.alee.managers.style.StyleId;
+import com.alee.managers.style.StyleableComponent;
 import com.alee.utils.TextUtils;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
@@ -37,9 +40,9 @@ import java.util.Map;
  * @see com.alee.managers.style.StyleManager
  */
 
-@XStreamAlias ( "skin" )
-@XStreamConverter ( SkinInfoConverter.class )
-public final class SkinInfo implements Serializable
+@XStreamAlias ("skin")
+@XStreamConverter (SkinInfoConverter.class)
+public final class SkinInfo implements TitleSupport, Serializable
 {
     /**
      * Unique skin ID.
@@ -48,10 +51,10 @@ public final class SkinInfo implements Serializable
     private String id;
 
     /**
-     * Short skin name.
+     * Skin title.
      * Might be used to display skin selection and options.
      */
-    private String name;
+    private String title;
 
     /**
      * Skin description.
@@ -75,7 +78,7 @@ public final class SkinInfo implements Serializable
      * Skin class canonical name.
      * Used to locate included resources.
      */
-    @XStreamAlias ( "class" )
+    @XStreamAlias ("class")
     private String skinClass;
 
     /**
@@ -87,8 +90,9 @@ public final class SkinInfo implements Serializable
 
     /**
      * Skin styles cache map.
+     * This map is automatically filled-in by the {@link com.alee.managers.style.data.SkinInfoConverter} with compiled styles.
      */
-    private transient Map<SupportedComponent, Map<String, ComponentStyle>> stylesCache;
+    private transient Map<StyleableComponent, Map<String, ComponentStyle>> stylesCache;
 
     /**
      * Constructs new skin information.
@@ -119,23 +123,24 @@ public final class SkinInfo implements Serializable
     }
 
     /**
-     * Returns skin name.
+     * Returns skin title.
      *
-     * @return skin name
+     * @return skin title
      */
-    public String getName ()
+    @Override
+    public String getTitle ()
     {
-        return name;
+        return title;
     }
 
     /**
-     * Sets skin name.
+     * Sets skin title.
      *
-     * @param name new skin name
+     * @param title new skin title
      */
-    public void setName ( final String name )
+    public void setTitle ( final String title )
     {
-        this.name = name;
+        this.title = title;
     }
 
     /**
@@ -263,7 +268,7 @@ public final class SkinInfo implements Serializable
      *
      * @return skin styles cache map
      */
-    public Map<SupportedComponent, Map<String, ComponentStyle>> getStylesCache ()
+    public Map<StyleableComponent, Map<String, ComponentStyle>> getStylesCache ()
     {
         return stylesCache;
     }
@@ -273,7 +278,7 @@ public final class SkinInfo implements Serializable
      *
      * @param stylesCache new skin styles cache map
      */
-    public void setStylesCache ( final Map<SupportedComponent, Map<String, ComponentStyle>> stylesCache )
+    public void setStylesCache ( final Map<StyleableComponent, Map<String, ComponentStyle>> stylesCache )
     {
         this.stylesCache = stylesCache;
     }
@@ -287,12 +292,12 @@ public final class SkinInfo implements Serializable
      * @param type      supported component type
      * @return component style
      */
-    public ComponentStyle getStyle ( final JComponent component, final SupportedComponent type )
+    public ComponentStyle getStyle ( final JComponent component, final StyleableComponent type )
     {
         final Map<String, ComponentStyle> componentStyles = stylesCache.get ( type );
         if ( componentStyles != null )
         {
-            final String styleId = type.getComponentStyleId ( component );
+            final String styleId = StyleId.getCompleteId ( component );
             final ComponentStyle style = componentStyles.get ( styleId );
             if ( style != null )
             {
@@ -302,13 +307,29 @@ public final class SkinInfo implements Serializable
             else
             {
                 // Required style cannot be found, using default style
-                Log.error ( this, "Unable to find style with ID \"" + styleId + "\" for component: " + component );
-                return componentStyles.get ( ComponentStyleConverter.DEFAULT_STYLE_ID );
+                final String warn = "Unable to find style for ID \"%s\" for component: %s";
+                Log.warn ( this, String.format ( warn, styleId, component.getClass ().getName () ) );
+
+                // Trying to use default component style
+                final String defaultStyleId = type.getDefaultStyleId ().getCompleteId ();
+                final ComponentStyle defaultStyle = componentStyles.get ( styleId );
+                if ( defaultStyle != null )
+                {
+                    return defaultStyle;
+                }
+                else
+                {
+                    // Default style cannot be found, using default style
+                    final String error = "Unable to find default style for ID \"%s\" for component: %s";
+                    throw new StyleException ( String.format ( error, defaultStyleId, component.getClass ().getName () ) );
+                }
             }
         }
         else
         {
-            return null;
+            // For some reason type cache doesn't exist
+            final String error = "Skin \"%s\" doesn't support component type: %s";
+            throw new StyleException ( String.format ( error, getTitle (), type.name () ) );
         }
     }
 }

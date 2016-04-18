@@ -20,6 +20,7 @@ package com.alee.extended.list;
 import com.alee.laf.list.WebList;
 import com.alee.laf.list.editor.ListCellEditor;
 import com.alee.laf.scroll.WebScrollPane;
+import com.alee.managers.style.StyleId;
 import com.alee.utils.FileUtils;
 import com.alee.utils.file.FileThumbnailProvider;
 
@@ -85,7 +86,7 @@ public class WebFileList extends WebList
      */
     public WebFileList ()
     {
-        super ( new FileListModel () );
+        super ( StyleId.filelist, new FileListModel () );
         initializeDefaultSettings ();
     }
 
@@ -96,7 +97,7 @@ public class WebFileList extends WebList
      */
     public WebFileList ( final String directoryPath )
     {
-        super ( new FileListModel ( directoryPath ) );
+        super ( StyleId.filelist, new FileListModel ( directoryPath ) );
         initializeDefaultSettings ();
     }
 
@@ -107,7 +108,7 @@ public class WebFileList extends WebList
      */
     public WebFileList ( final File directory )
     {
-        super ( new FileListModel ( directory ) );
+        super ( StyleId.filelist, new FileListModel ( directory ) );
         initializeDefaultSettings ();
     }
 
@@ -118,7 +119,7 @@ public class WebFileList extends WebList
      */
     public WebFileList ( final File[] data )
     {
-        super ( new FileListModel ( data ) );
+        super ( StyleId.filelist, new FileListModel ( data ) );
         initializeDefaultSettings ();
     }
 
@@ -129,7 +130,66 @@ public class WebFileList extends WebList
      */
     public WebFileList ( final List<File> data )
     {
-        super ( new FileListModel ( data ) );
+        super ( StyleId.filelist, new FileListModel ( data ) );
+        initializeDefaultSettings ();
+    }
+
+    /**
+     * Constructs empty file list.
+     *
+     * @param id style ID
+     */
+    public WebFileList ( final StyleId id )
+    {
+        super ( id, new FileListModel () );
+        initializeDefaultSettings ();
+    }
+
+    /**
+     * Constructs file list with files from directory under the specified path.
+     *
+     * @param id            style ID
+     * @param directoryPath directory path
+     */
+    public WebFileList ( final StyleId id, final String directoryPath )
+    {
+        super ( id, new FileListModel ( directoryPath ) );
+        initializeDefaultSettings ();
+    }
+
+    /**
+     * Constructs file list with files from the specified directory.
+     *
+     * @param id        style ID
+     * @param directory directory
+     */
+    public WebFileList ( final StyleId id, final File directory )
+    {
+        super ( id, new FileListModel ( directory ) );
+        initializeDefaultSettings ();
+    }
+
+    /**
+     * Constructs file list with the specified files.
+     *
+     * @param id   style ID
+     * @param data files array
+     */
+    public WebFileList ( final StyleId id, final File[] data )
+    {
+        super ( id, new FileListModel ( data ) );
+        initializeDefaultSettings ();
+    }
+
+    /**
+     * Constructs file list with the specified files.
+     *
+     * @param id   style ID
+     * @param data files list
+     */
+    public WebFileList ( final StyleId id, final List<File> data )
+    {
+        super ( id, new FileListModel ( data ) );
         initializeDefaultSettings ();
     }
 
@@ -138,10 +198,6 @@ public class WebFileList extends WebList
      */
     protected void initializeDefaultSettings ()
     {
-        // Standard settings
-        setLayoutOrientation ( JList.HORIZONTAL_WRAP );
-        setVisibleRowCount ( 0 );
-
         // Files list renderer
         setCellRenderer ( new WebFileListCellRenderer ( WebFileList.this ) );
     }
@@ -151,7 +207,7 @@ public class WebFileList extends WebList
      * Be aware that this method might throw ClassCastException if renderer is altered by user.
      *
      * @return specific for WebFileList renderer
-     * @throws ClassCastException
+     * @throws java.lang.ClassCastException if wrong file list cell renderer type is set
      */
     public WebFileListCellRenderer getWebFileListCellRenderer () throws ClassCastException
     {
@@ -164,7 +220,7 @@ public class WebFileList extends WebList
      * Be aware that this method might throw ClassCastException if model is altered by user.
      *
      * @return specific for WebFileList model
-     * @throws ClassCastException
+     * @throws java.lang.ClassCastException if wrong file list model type is set
      */
     public FileListModel getFileListModel () throws ClassCastException
     {

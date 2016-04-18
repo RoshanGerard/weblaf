@@ -1,0 +1,18 @@
+<skin>
+
+    <!-- com.alee.extended.panel.WebComponentPane -->
+
+    <!-- Container panel -->
+    <style type="panel" id="componentpane">
+        <painter class="WebPanelPainter">
+            <webColoredBackground>false</webColoredBackground>
+        </painter>
+
+        <!-- Single panel -->
+        <style type="panel" id="panel">
+            <painter class="WebSelectablePanelPainter" />
+        </style>
+
+    </style>
+
+</skin>

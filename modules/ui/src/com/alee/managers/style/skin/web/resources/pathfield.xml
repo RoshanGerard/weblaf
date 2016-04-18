@@ -1,0 +1,78 @@
+<skin>
+
+    <!-- com.alee.extended.filechooser.WebPathField -->
+
+    <!-- Main panel -->
+    <style type="panel" id="pathfield" padding="-1,-1,-1,-1">
+        <component>
+            <background>255,255,255</background>
+            <opaque>false</opaque>
+        </component>
+        <painter class="WebPanelPainter">
+            <round>2</round>
+            <shadeWidth>2</shadeWidth>
+            <paintFocus>true</paintFocus>
+            <paintBackground>true</paintBackground>
+            <webColoredBackground>false</webColoredBackground>
+        </painter>
+
+        <!-- Path content panel -->
+        <style type="panel" id="content">
+            <component>
+                <opaque>false</opaque>
+            </component>
+
+            <!-- Path field -->
+            <style type="textfield" id="path-field" extends="undecorated">
+
+                <!-- Autocomplete popup list scroll -->
+                <style type="scrollpane" id="scroll">
+                    <painter class="WebScrollPanePainter">
+                        <shadeWidth>0</shadeWidth>
+                    </painter>
+                </style>
+
+            </style>
+
+            <!-- Root button -->
+            <style type="button" id="path-root">
+                <painter class="WebButtonPainter">
+                    <round>2</round>
+                    <shadeWidth>0</shadeWidth>
+                    <leftRightSpacing>0</leftRightSpacing>
+                    <rolloverDecoratedOnly>true</rolloverDecoratedOnly>
+                    <rolloverDarkBorderOnly>false</rolloverDarkBorderOnly>
+                    <paintFocus>false</paintFocus>
+                    <paintRight>false</paintRight>
+                    <paintRightLine>true</paintRightLine>
+                </painter>
+            </style>
+
+            <!-- Path button -->
+            <style type="button" id="path-button">
+                <painter class="WebButtonPainter">
+                    <round>2</round>
+                    <shadeWidth>0</shadeWidth>
+                    <leftRightSpacing>0</leftRightSpacing>
+                    <rolloverDecoratedOnly>true</rolloverDecoratedOnly>
+                    <rolloverDarkBorderOnly>false</rolloverDarkBorderOnly>
+                </painter>
+            </style>
+
+            <!-- Path menu button -->
+            <style type="togglebutton" id="path-children">
+                <painter class="WebToggleButtonPainter">
+                    <round>0</round>
+                    <shadeWidth>0</shadeWidth>
+                    <shadeToggleIcon>false</shadeToggleIcon>
+                    <leftRightSpacing>0</leftRightSpacing>
+                    <rolloverDecoratedOnly>true</rolloverDecoratedOnly>
+                    <rolloverDarkBorderOnly>false</rolloverDarkBorderOnly>
+                </painter>
+            </style>
+
+        </style>
+
+    </style>
+
+</skin>

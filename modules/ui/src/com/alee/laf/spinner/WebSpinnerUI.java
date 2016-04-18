@@ -17,14 +17,13 @@
 
 package com.alee.laf.spinner;
 
-import com.alee.global.StyleConstants;
-import com.alee.laf.WebLookAndFeel;
+import com.alee.extended.layout.AbstractLayoutManager;
 import com.alee.laf.button.WebButton;
-import com.alee.laf.text.WebTextFieldUI;
-import com.alee.utils.LafUtils;
+import com.alee.managers.style.*;
+import com.alee.painter.Painter;
+import com.alee.painter.PainterSupport;
 import com.alee.utils.SwingUtils;
-import com.alee.utils.laf.ShapeProvider;
-import com.alee.utils.swing.BorderMethods;
+import com.alee.utils.swing.DataRunnable;
 
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
@@ -38,144 +37,177 @@ import java.awt.event.FocusEvent;
  * @author Mikle Garin
  */
 
-public class WebSpinnerUI extends BasicSpinnerUI implements ShapeProvider, BorderMethods
+public class WebSpinnerUI extends BasicSpinnerUI implements Styleable, ShapeProvider, MarginSupport, PaddingSupport
 {
-    private static final ImageIcon UP_ICON = new ImageIcon ( WebSpinnerUI.class.getResource ( "icons/up.png" ) );
-    private static final ImageIcon DOWN_ICON = new ImageIcon ( WebSpinnerUI.class.getResource ( "icons/down.png" ) );
+    /**
+     * Spinner button icons.
+     */
+    protected static final ImageIcon UP_ICON = new ImageIcon ( WebSpinnerUI.class.getResource ( "icons/up.png" ) );
+    protected static final ImageIcon DOWN_ICON = new ImageIcon ( WebSpinnerUI.class.getResource ( "icons/down.png" ) );
 
-    private boolean drawBorder = WebSpinnerStyle.drawBorder;
-    private boolean drawFocus = WebSpinnerStyle.drawFocus;
-    private int round = WebSpinnerStyle.round;
-    private int shadeWidth = WebSpinnerStyle.shadeWidth;
+    /**
+     * Component painter.
+     */
+    protected ISpinnerPainter painter;
 
-    @SuppressWarnings ( "UnusedParameters" )
+    /**
+     * Runtime variables.
+     */
+    protected Insets margin = null;
+    protected Insets padding = null;
+
+    /**
+     * Returns an instance of the WebSpinnerUI for the specified component.
+     * This tricky method is used by UIManager to create component UIs when needed.
+     *
+     * @param c component that will use UI instance
+     * @return instance of the WebSpinnerUI
+     */
+    @SuppressWarnings ("UnusedParameters")
     public static ComponentUI createUI ( final JComponent c )
     {
         return new WebSpinnerUI ();
     }
 
+    /**
+     * Installs UI in the specified component.
+     *
+     * @param c component for this UI
+     */
     @Override
     public void installUI ( final JComponent c )
     {
+        // Installing UI
         super.installUI ( c );
 
-        // Default settings
-        SwingUtils.setOrientation ( spinner );
-        LookAndFeel.installProperty ( spinner, WebLookAndFeel.OPAQUE_PROPERTY, Boolean.FALSE );
-        spinner.setBackground ( Color.WHITE );
+        // Applying skin
+        StyleManager.installSkin ( spinner );
+    }
 
-        // Updating border
-        updateBorder ();
+    /**
+     * Uninstalls UI from the specified component.
+     *
+     * @param c component with this UI
+     */
+    @Override
+    public void uninstallUI ( final JComponent c )
+    {
+        // Uninstalling applied skin
+        StyleManager.uninstallSkin ( spinner );
+
+        // Uninstalling UI
+        super.uninstallUI ( c );
+    }
+
+    @Override
+    public StyleId getStyleId ()
+    {
+        return StyleManager.getStyleId ( spinner );
+    }
+
+    @Override
+    public StyleId setStyleId ( final StyleId id )
+    {
+        return StyleManager.setStyleId ( spinner, id );
     }
 
     @Override
     public Shape provideShape ()
     {
-        return LafUtils.getWebBorderShape ( spinner, getShadeWidth (), getRound () );
+        return PainterSupport.getShape ( spinner, painter );
     }
 
     @Override
-    public void updateBorder ()
+    public Insets getMargin ()
     {
-        if ( spinner != null )
+        return margin;
+    }
+
+    @Override
+    public void setMargin ( final Insets margin )
+    {
+        this.margin = margin;
+        PainterSupport.updateBorder ( getPainter () );
+    }
+
+    @Override
+    public Insets getPadding ()
+    {
+        return padding;
+    }
+
+    @Override
+    public void setPadding ( final Insets padding )
+    {
+        this.padding = padding;
+        PainterSupport.updateBorder ( getPainter () );
+    }
+
+    /**
+     * Returns spinner painter.
+     *
+     * @return spinner painter
+     */
+    public Painter getPainter ()
+    {
+        return PainterSupport.getAdaptedPainter ( painter );
+    }
+
+    /**
+     * Sets spinner painter.
+     * Pass null to remove spinner painter.
+     *
+     * @param painter new spinner painter
+     */
+    public void setPainter ( final Painter painter )
+    {
+        PainterSupport.setPainter ( spinner, new DataRunnable<ISpinnerPainter> ()
         {
-            // Preserve old borders
-            if ( SwingUtils.isPreserveBorders ( spinner ) )
+            @Override
+            public void run ( final ISpinnerPainter newPainter )
             {
-                return;
+                WebSpinnerUI.this.painter = newPainter;
             }
-
-            if ( drawBorder )
-            {
-                spinner.setBorder ( BorderFactory.createEmptyBorder ( shadeWidth + 2, shadeWidth + 2, shadeWidth + 2, shadeWidth + 2 ) );
-            }
-            else
-            {
-                spinner.setBorder ( BorderFactory.createEmptyBorder ( 1, 1, 1, 1 ) );
-            }
-        }
+        }, this.painter, painter, ISpinnerPainter.class, AdaptiveSpinnerPainter.class );
     }
 
-    public int getShadeWidth ()
+    @Override
+    protected LayoutManager createLayout ()
     {
-        return shadeWidth;
+        return new WebSpinnerLayout ();
     }
 
-    public void setShadeWidth ( final int shadeWidth )
-    {
-        this.shadeWidth = shadeWidth;
-        updateBorder ();
-    }
-
-    public int getRound ()
-    {
-        return round;
-    }
-
-    public void setRound ( final int round )
-    {
-        this.round = round;
-        updateBorder ();
-    }
-
-    public boolean isDrawBorder ()
-    {
-        return drawBorder;
-    }
-
-    public void setDrawBorder ( final boolean drawBorder )
-    {
-        this.drawBorder = drawBorder;
-        updateBorder ();
-    }
-
-    public boolean isDrawFocus ()
-    {
-        return drawFocus;
-    }
-
-    public void setDrawFocus ( final boolean drawFocus )
-    {
-        this.drawFocus = drawFocus;
-    }
-
+    /**
+     * Paints slider.
+     *
+     * @param g graphics
+     * @param c component
+     */
     @Override
     public void paint ( final Graphics g, final JComponent c )
     {
-        // Border, background and shade
-        LafUtils.drawWebStyle ( ( Graphics2D ) g, c,
-                drawFocus && SwingUtils.hasFocusOwner ( spinner ) ? StyleConstants.fieldFocusColor : StyleConstants.shadeColor, shadeWidth,
-                round );
-
-        super.paint ( g, c );
+        if ( painter != null )
+        {
+            painter.paint ( ( Graphics2D ) g, SwingUtils.size ( c ), c, this );
+        }
     }
 
     @Override
     protected Component createNextButton ()
     {
-        final WebButton nextButton = WebButton.createIconWebButton ( UP_ICON, StyleConstants.smallRound, 1, 2 );
-        nextButton.setLeftRightSpacing ( 1 );
-        nextButton.setDrawFocus ( false );
-        nextButton.setFocusable ( false );
-
+        final WebButton nextButton = new WebButton ( StyleId.spinnerNextButton.at ( spinner ), UP_ICON );
         nextButton.setName ( "Spinner.nextButton" );
         installNextButtonListeners ( nextButton );
-
         return nextButton;
     }
 
     @Override
     protected Component createPreviousButton ()
     {
-        final WebButton previousButton = WebButton.createIconWebButton ( DOWN_ICON, StyleConstants.smallRound, 1, 2 );
-        previousButton.setLeftRightSpacing ( 1 );
-        previousButton.setDrawFocus ( false );
-        previousButton.setFocusable ( false );
-
-        previousButton.setName ( "Spinner.previousButton" );
-        installPreviousButtonListeners ( previousButton );
-
-        return previousButton;
+        final WebButton prevButton = new WebButton ( StyleId.spinnerPreviousButton.at ( spinner ), DOWN_ICON );
+        prevButton.setName ( "Spinner.previousButton" );
+        installPreviousButtonListeners ( prevButton );
+        return prevButton;
     }
 
     @Override
@@ -184,26 +216,27 @@ public class WebSpinnerUI extends BasicSpinnerUI implements ShapeProvider, Borde
         final JComponent editor = super.createEditor ();
         if ( editor instanceof JTextComponent )
         {
-            installFieldUI ( ( JTextComponent ) editor, spinner );
+            configureEditor ( ( JTextComponent ) editor, spinner );
         }
         else
         {
-            installFieldUI ( ( ( JSpinner.DefaultEditor ) editor ).getTextField (), spinner );
+            configureEditor ( ( ( JSpinner.DefaultEditor ) editor ).getTextField (), spinner );
         }
         return editor;
     }
 
-    public static void installFieldUI ( final JTextComponent field, final JSpinner spinner )
+    /**
+     * Configures editor field.
+     *
+     * @param field   editor field
+     * @param spinner spinner
+     */
+    public static void configureEditor ( final JTextComponent field, final JSpinner spinner )
     {
-        field.setMargin ( new Insets ( 0, 0, 0, 0 ) );
-        field.setBorder ( BorderFactory.createEmptyBorder ( 0, 0, 0, 0 ) );
+        // Installing proper styling
+        StyleId.spinnerEditor.at ( spinner ).set ( field );
 
-        final WebTextFieldUI textFieldUI = new WebTextFieldUI ();
-        textFieldUI.setDrawBorder ( false );
-        field.setUI ( textFieldUI );
-
-        field.setOpaque ( true );
-        field.setBackground ( Color.WHITE );
+        // Adding editor focus listener
         field.addFocusListener ( new FocusAdapter ()
         {
             @Override
@@ -218,5 +251,121 @@ public class WebSpinnerUI extends BasicSpinnerUI implements ShapeProvider, Borde
                 spinner.repaint ();
             }
         } );
+    }
+
+    @Override
+    public Dimension getPreferredSize ( final JComponent c )
+    {
+        return PainterSupport.getPreferredSize ( c, super.getPreferredSize ( c ), painter );
+    }
+
+    /**
+     * Replacement for spinner layout provided by {@link javax.swing.plaf.basic.BasicSpinnerUI}.
+     * It properly provides equal space for both spinner buttons and calculates preferred size.
+     * It also fixes a few minor issues and flaws in the layout.
+     */
+    protected static class WebSpinnerLayout extends AbstractLayoutManager
+    {
+        /**
+         * Editor layout constraint.
+         */
+        public static final String EDITOR = "Editor";
+
+        /**
+         * Next (down) button layout constraint.
+         */
+        public static final String NEXT = "Next";
+
+        /**
+         * Previous (up) button layout constraint.
+         */
+        public static final String PREVIOUS = "Previous";
+
+        /**
+         * Editor component.
+         */
+        protected Component editor = null;
+
+        /**
+         * Next (down) button.
+         */
+        protected Component nextButton = null;
+
+        /**
+         * Previous (up) button.
+         */
+        protected Component previousButton = null;
+
+        @Override
+        public void addComponent ( final Component component, final Object constraints )
+        {
+            if ( EDITOR.equals ( constraints ) )
+            {
+                editor = component;
+            }
+            else if ( NEXT.equals ( constraints ) )
+            {
+                nextButton = component;
+            }
+            else if ( PREVIOUS.equals ( constraints ) )
+            {
+                previousButton = component;
+            }
+        }
+
+        @Override
+        public void removeComponent ( final Component component )
+        {
+            if ( component == editor )
+            {
+                editor = null;
+            }
+            else if ( component == nextButton )
+            {
+                nextButton = null;
+            }
+            else if ( component == previousButton )
+            {
+                previousButton = null;
+            }
+        }
+
+        @Override
+        public void layoutContainer ( final Container parent )
+        {
+            final Insets b = parent.getInsets ();
+            final Dimension s = parent.getSize ();
+            final Dimension next = nextButton != null ? nextButton.getPreferredSize () : new Dimension ( 0, 0 );
+            final Dimension prev = previousButton != null ? previousButton.getPreferredSize () : new Dimension ( 0, 0 );
+            final int bw = Math.max ( next.width, prev.width );
+            final int bah = s.height - b.top - b.bottom;
+            final int nh = bah % 2 == 0 ? bah / 2 : ( bah - 1 ) / 2 + 1;
+            final int ph = bah % 2 == 0 ? bah / 2 : ( bah - 1 ) / 2;
+            final boolean ltr = parent.getComponentOrientation ().isLeftToRight ();
+            if ( editor != null )
+            {
+                editor.setBounds ( b.left + ( ltr ? 0 : bw ), b.top, s.width - b.left - b.right - bw, s.height - b.top - b.bottom );
+            }
+            if ( nextButton != null )
+            {
+                nextButton.setBounds ( ltr ? s.width - b.right - bw : b.left, b.top, bw, nh );
+            }
+            if ( previousButton != null )
+            {
+                previousButton.setBounds ( ltr ? s.width - b.right - bw : b.left, b.top + nh, bw, ph );
+            }
+        }
+
+        @Override
+        public Dimension preferredLayoutSize ( final Container parent )
+        {
+            final Insets b = parent.getInsets ();
+            final Dimension ed = editor != null ? editor.getPreferredSize () : new Dimension ( 0, 0 );
+            final Dimension next = nextButton != null ? nextButton.getPreferredSize () : new Dimension ( 0, 0 );
+            final Dimension prev = previousButton != null ? previousButton.getPreferredSize () : new Dimension ( 0, 0 );
+            final int w = b.left + ed.width + Math.max ( next.width, prev.width ) + b.right;
+            final int h = b.top + Math.max ( ed.height, next.height + prev.height ) + b.bottom;
+            return new Dimension ( w, h );
+        }
     }
 }
